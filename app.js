@@ -6,6 +6,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
 
 (function () {
   'use strict';
+  var LITE = document.documentElement.classList.contains('lite');
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   function api(fn) {
@@ -338,11 +339,12 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     }
     function mk() { var a = Math.random() * 6.283, s = .12 + Math.random() * .3, inZ = zone && Math.random() < .78; return { free: !inZ, x: Math.random() * W, y: inZ ? zone.y0 + Math.random() * (zone.y1 - zone.y0) : Math.random() * H, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 1 + Math.random() * 1.7, warm: Math.random() < .14, ph: Math.random() * 6.283 }; }
     function size() {
-      var r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2); if (!r.width || !r.height) return;
+      var r = cv.getBoundingClientRect(), dpr = LITE ? 1 : Math.min(window.devicePixelRatio || 1, 2); if (!r.width || !r.height) return;
       W = r.width; H = r.height; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       calcZone();
       var n = Math.round(Math.min(100, Math.max(26, W * H / 15000)));
       if (zone) n += Math.round(W * (zone.y1 - zone.y0) / 7000);
+      if (LITE) n = Math.round(n * .5);
       pts.length = 0; while (pts.length < n) pts.push(mk());
       pts.forEach(function (p) { if (p.x > W) p.x = Math.random() * W; if (p.y > H) p.y = Math.random() * H; });
       if (!running) draw(0);
@@ -406,9 +408,9 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     var ctx = cv.getContext('2d'), W = 0, H = 0, pts = [], raf = 0, running = false;
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     function size() {
-      var r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2); if (!r.width || !r.height) return;
+      var r = cv.getBoundingClientRect(), dpr = LITE ? 1 : Math.min(window.devicePixelRatio || 1, 2); if (!r.width || !r.height) return;
       W = r.width; H = r.height; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      var n = Math.max(12, Math.round(W / 44)); pts = [];
+      var n = Math.max(10, Math.round(W / (LITE ? 80 : 44))); pts = [];
       for (var i = 0; i < n; i++) pts.push({ fx: i / (n - 1), ph: Math.random() * 6.283, r: 1.2 + Math.random() * 1.7, warm: Math.random() < .16, amp: .55 + Math.random() * .45, off: (Math.random() - .5) * .55 });
       draw(0);
     }

@@ -46,6 +46,17 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="shortcut icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
+    <script>
+    /* 저사양 자동 감지: 메모리 4GB 이하 / CPU 코어 2개 이하 / 데이터 절약 모드일 때 가벼운 화면(lite)으로. 테스트: 주소 끝에 ?lite=1(강제 켜기) 또는 ?lite=0(강제 끄기) */
+    (function () {
+      var d = document.documentElement, q = location.search, n = navigator, c = n.connection || {}, on = false;
+      try {
+        on = (n.deviceMemory && n.deviceMemory <= 4) || (n.hardwareConcurrency && n.hardwareConcurrency <= 2) || !!c.saveData;
+        if (/[?&]lite=1/.test(q)) on = true; else if (/[?&]lite=0/.test(q)) on = false;
+      } catch (e) { }
+      if (on) d.classList.add('lite');
+    })();
+    </script>
     <link rel="preconnect" href="https://script.google.com">
     <link rel="dns-prefetch" href="https://script.googleusercontent.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">

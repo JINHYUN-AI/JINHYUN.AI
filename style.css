@@ -819,3 +819,16 @@
     .hum-main > .hv { justify-items: stretch; }
     .hum-main > .hv .video { max-width: none; width: 100%; }
   }
+
+  /* ===== 저사양 자동 감지(lite): 디자인은 유지하고 무거운 효과만 줄임 ===== */
+  .lite *, .lite *::before, .lite *::after { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  .lite .orb { filter: none !important; animation: none !important; opacity: 1 !important; }
+  .lite .orb.a { background: radial-gradient(circle, rgba(195,244,0,.16) 0%, rgba(195,244,0,0) 62%) !important; }
+  .lite .orb.b { background: radial-gradient(circle, rgba(244,244,240,.05) 0%, rgba(244,244,240,0) 62%) !important; }
+  .lite .grain { display: none !important; }
+  .lite .card { background: rgba(30,32,38,.92); }
+  .lite .pf-r, .lite .panel-card { background: rgba(24,26,32,.92); }
+  .lite .qmenu { background: rgba(17,19,24,.98); }
+  .lite .veil { background: rgba(8,9,11,.82); }
+  .lite .card.ready { transition: background .2s, color .2s, box-shadow .2s, border-color .2s; }
+  .lite .ticker-track { animation-duration: 60s; }
