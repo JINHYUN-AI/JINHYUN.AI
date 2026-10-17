@@ -727,3 +727,13 @@
 
   .r4-l .kpi { gap: clamp(28px, 4.2cqh, 44px) !important; }
   .r4-l .kpi-n { padding-bottom: .04em; }
+
+  /* 카드는 모두 같은 크기·같은 높이 */
+  .showcase { align-items: stretch; }
+  .showcase .card { margin-top: 0 !important; height: auto; }
+  .card .foot { min-height: 2.9em; align-items: flex-end; }
+
+  /* 상세 시트 안 영상 플레이어 */
+  .sp { aspect-ratio: 16 / 9; width: 100%; margin: 4px 0 20px; background: #000; border: 1px solid var(--line-2); position: relative; }
+  .sp[hidden] { display: none; }
+  .sp iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }

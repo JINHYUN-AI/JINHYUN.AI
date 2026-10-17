@@ -23,12 +23,12 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   var EN = {
     nav_home: 'Home', nav_sol: 'Solutions', nav_prof: 'Profile & Tech', nav_contact: 'Contact', btn_inquiry: 'Contact',
     prof_h: '25 years in the field,<br>proven record<span class="lime">.</span>', st_prob: 'Problem', st_sol: 'Solution', st_res: 'Result', st_sys: 'Systems', st_prof: 'Profile', st_tech: 'Tech',
-    sys_h: 'Systems I built<br><span id="sysCount">24</span><span class="lime">.</span>', tech_h: 'Running on Google<br>tech stack<span class="lime">.</span>',
+    sys_h: 'Systems I developed<span class="lime">.</span>', tech_h: 'Running on Google<br>tech stack<span class="lime">.</span>',
     greet: "Hello, I'm <b>Jang Jin-hyun</b>, the coding secretary general.", greet2: 'What happens when a 25-year social welfare practitioner writes the code himself? Here is a realistic alternative, shown in working systems.',
     hero_tag: 'SOCIAL WELFARE × AI · SECRETARY GENERAL, LIGHTHOUSE HOUSE',
     hero_h: '<span class="ko">Weekend code</span><br><span class="ko">rewrites welfare\'s</span><br><span class="ko">Monday<em>.</em></span>',
     hero_sub: 'AI-powered admin automation, built by a practitioner who knows the field. We give the time spent on paperwork back to people.',
-    hero_cta1: 'View solutions', hero_cta2: 'Ask the AI assistant', today: "Today's line", tomorrow: "Tomorrow's line", rec: 'Monday 09:00',
+    hero_cta1: 'View portfolio', hero_cta2: 'Ask the AI assistant', today: "Today's line", tomorrow: "Tomorrow's line", rec: 'Monday 09:00',
     prob_h: 'Buried in<br>paperwork.', prob_p: 'Counseling, schedules, reports, all by hand. The time to sit down with the people who matter disappears.',
     prob_chart: 'WEEKLY TASK LOAD · CONCEPT', b1: 'Docs & schedules', b2: 'Case notes', b3: 'Reports', b4: 'Minutes', b5: 'Time with people',
     illu: 'ILLUSTRATIVE · concept only, not real figures',
@@ -90,7 +90,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   }
 
   /* ---------- 솔루션 카드 ---------- */
-  var MT = [0, 34, 68, 34, 0], RT = ['-6deg', '4deg', '-3deg', '5deg', '-5deg'];
+  var MT = [0, 0, 0, 0, 0], RT = ['0deg', '0deg', '0deg', '0deg', '0deg'];
   var partSel = 0, fEl = $('#filters'), sc = $('#showcase');
   function toSys(r) {
     var m = /Part\s*(\d)/i.exec(r.category || ''); var d = String(r.detail || '').split(/\n*\s*(더 궁금하시면|If you have)/)[0].trim();
@@ -100,7 +100,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     var scn = $('#sysCount'); if (scn) scn.textContent = state.systems.length;
     var parts = []; state.systems.forEach(function (s) { if (parts.map(function (x) { return x[0]; }).indexOf(s.p) < 0) parts.push([s.p, s.pn]); });
     parts.sort(function (a, b) { return a[0] - b[0]; });
-    var list = [[0, isKr() ? '전체' : 'All']].concat(parts.map(function (x) { return [x[0], 'P' + x[0] + ' ' + x[1]]; }));
+    var list = [[0, isKr() ? '전체' : 'All']].concat(parts.map(function (x) { return [x[0], x[1]]; }));
     fEl.innerHTML = '';
     list.forEach(function (pt) {
       var n = pt[0] ? state.systems.filter(function (s) { return s.p === pt[0]; }).length : state.systems.length;
