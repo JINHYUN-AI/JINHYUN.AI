@@ -33,7 +33,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     prob_chart: 'WEEKLY TASK LOAD · CONCEPT', b1: 'Docs & schedules', b2: 'Case notes', b3: 'Reports', b4: 'Minutes', b5: 'Time with people',
     illu: 'ILLUSTRATIVE · concept only, not real figures',
     sol_h: 'Built in the field,<br>automated by AI<span class="lime">.</span>', sol_p: 'I turned the daily frustrations of running a facility straight into code. Repetitive work now runs by itself on Google Workspace.',
-    log1: 'Official letter received → schedule auto-registered', log2: 'Counseling memo → draft record generated', log3: 'Every day 18:00 → daily report sent automatically', sample: 'sample',
+    log1: 'Colloquial field notes converted into structured daily records', log2: 'Results of 37 indicators filled into forms automatically', log3: 'Stays stable even beyond traffic limits', sample: 'sample',
     res_h: 'Time returned<br>to people<span class="lime">.</span>', res_p: 'Conversation moves into the space paperwork leaves. Before any number changes, the faces in the field do.',
     concept: 'The chart below is a concept diagram', cross: 'Crossover · the moment time comes back', g_hi1: 'Counseling', g_lo1: 'Admin time', before: 'Before', after: 'After',
     q_home: 'Home', q_phil: 'Story', q_sol: 'Solutions', q_prof: 'Profile', q_tech: 'Tech', q_contact: 'Contact', q_ai: 'AI Chat', sol_sub: '4/4 · Systems I built · click a card for details', prof_label: 'Profile & expertise', prof_note: 'Live-linked to the Profile sheet',
@@ -63,7 +63,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   }
   function numHtml(n, unit) { return '<b><span class="cnt" data-to="' + esc(n) + '">' + esc(n) + '</span><i>' + esc(unit) + '</i></b>'; }
   function isNum(v) { return v !== '' && !isNaN(Number(String(v).replace(/,/g, ''))); }
-  function runCounts() { if (slides[curIdx]) $$('.cnt', slides[curIdx]).forEach(countUp); }
+  function runCounts() { var s = slides[curIdx]; if (!s) return; var scope = (s._panels && s._panels.length) ? s._panels[s._p] : s; $$('.cnt', scope).forEach(countUp); }
 
   /* ---------- 상단: 시계·티커 ---------- */
   function renderTicker() {
@@ -246,20 +246,42 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   });
 
   /* ---------- 데이터 로드 ---------- */
+  /* ---------- 로딩 화면 + 캐시(재방문 즉시 표시) ---------- */
+  var intro = $('#intro'), inBar = $('#inBar'), inMsg = $('#inMsg');
+  var need = { getAboutWeek: 0, getSystemData: 0, getProfileData: 0, getMetricsData: 0 }, doneN = 0, introFin = false, progV = 0, introT0 = Date.now();
+  var MSG = { kr: ['환경 구성 중', '데이터 불러오는 중', '이력·솔루션 동기화 중', '화면 구성 중'], en: ['Preparing environment', 'Loading data', 'Syncing profile & solutions', 'Building the view'] };
+  function setProg(p) { progV = Math.max(progV, Math.min(100, p)); if (inBar) inBar.style.width = progV + '%'; if (inMsg) { var a = MSG[isKr() ? 'kr' : 'en']; inMsg.textContent = a[progV < 30 ? 0 : progV < 60 ? 1 : progV < 92 ? 2 : 3]; } }
+  var introTick = intro ? setInterval(function () { var e = Date.now() - introT0; setProg(Math.max(88 * (1 - Math.exp(-e / 1500)), doneN / 4 * 90)); }, 60) : 0;
+  function replayCurrent() { var s = slides[curIdx]; if (!s) return; var el = (s._panels && s._panels.length) ? s._panels[s._p] : s; el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); runCounts(); }
+  function finishIntro() {
+    if (introFin) return; introFin = true; clearInterval(introTick);
+    if (!intro) return;
+    var wait = Math.max(0, 450 - (Date.now() - introT0));
+    setTimeout(function () { setProg(100); setTimeout(function () { intro.classList.add('out'); replayCurrent(); setTimeout(function () { intro.classList.add('gone'); }, 400); }, 160); }, wait);
+  }
+  function introMark(fn) { if (need[fn] === 0) { need[fn] = 1; doneN++; if (doneN >= 4) finishIntro(); } }
+  setTimeout(finishIntro, 6000);
+  function cachedApi(fn, L, render) {
+    var k = 'jh2|' + fn + '|' + L, raw = null, c = null;
+    try { raw = localStorage.getItem(k); c = raw ? JSON.parse(raw) : null; } catch (e) { c = null; }
+    if (c != null) { try { render(c); } catch (e) { warn(e); } introMark(fn); }
+    return api(fn, L).then(function (d) { var s = JSON.stringify(d); try { localStorage.setItem(k, s); } catch (e) { } if (s !== raw) render(d); introMark(fn); return d; }, function (e) { introMark(fn); throw e; });
+  }
+
   function loadAll() {
     var L = isKr() ? 'kr' : 'en';
-    api('getBannerData', L).then(function (d) { state.banners = d || []; renderTicker(); }).catch(warn);
-    api('getAboutWeek', L).then(function (d) { state.week = d || []; renderAbout(); }).catch(function () {
+    cachedApi('getBannerData', L, function (d) { state.banners = d || []; renderTicker(); }).catch(warn);
+    cachedApi('getAboutWeek', L, function (d) { state.week = d || []; renderAbout(); }).catch(function () {
       api('getAboutData', L).then(function (a) { if (!a) return; state.week = [{ day: todayIdx + 1, slogan: a.slogan, philosophy: a.philosophy, branding: a.branding }]; renderAbout(); }).catch(warn);
     });
-    api('getSystemData', L).then(function (d) { state.systems = (d || []).map(toSys); partSel = 0; renderFilters(); renderCards(); renderHeroStats(); renderResult(); }).catch(function (e) { warn(e); sc.innerHTML = '<p style="color:var(--fg-60);padding:20px">데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>'; });
-    api('getTools', L).then(renderTech).catch(warn);
-    api('getFooterData', L).then(renderFooter).catch(warn);
-    api('getMetricsData', L).then(function (d) { state.metrics = d || {}; renderHeroStats(); renderResult(); }).catch(warn);
+    cachedApi('getSystemData', L, function (d) { state.systems = (d || []).map(toSys); partSel = 0; renderFilters(); renderCards(); renderHeroStats(); renderResult(); }).catch(function (e) { warn(e); sc.innerHTML = '<p style="color:var(--fg-60);padding:20px">데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>'; });
+    cachedApi('getTools', L, renderTech).catch(warn);
+    cachedApi('getFooterData', L, renderFooter).catch(warn);
+    cachedApi('getMetricsData', L, function (d) { state.metrics = d || {}; renderHeroStats(); renderResult(); }).catch(warn);
   }
   function warn(e) { if (window.console) console.warn('[JINHYUN.AI]', e && e.message ? e.message : e); }
   var profLoaded = false;
-  function loadProfile() { api('getProfileData', isKr() ? 'kr' : 'en').then(function (d) { state.profile = d || { items: [], copyright: [] }; profLoaded = true; renderPortfolio(); }).catch(warn); }
+  function loadProfile() { cachedApi('getProfileData', isKr() ? 'kr' : 'en', function (d) { state.profile = d || { items: [], copyright: [] }; profLoaded = true; renderPortfolio(); }).catch(warn); }
   api('getPromoVideoUrl').then(function (u) { state.promo = u || ''; if (!u) $('#playBtn').style.display = 'none'; }).catch(warn);
 
   /* ---------- 히어로 배경: 점·점선 네트워크 (라임 + 앰버 소량, 마우스 반응) ---------- */
@@ -326,17 +348,40 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   var pg = $('#pager'), curIdx = 0, sweep = $('#sweep');
   slides.forEach(function (s, i) { var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', s.dataset.name); b.onclick = function () { go(i); }; pg.appendChild(b); });
   function go(i) { closeMenu(); slides[i].scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-  $$('[data-go]').forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); go(+a.dataset.go); }); });
-  var QMAP = [0, 1, 1, 1, 1, 5, 5, 7];
-  var GRP = [['HOME', 0, 0], ['SOLUTIONS', 1, 4], ['SOLUTIONS', 2, 4], ['SOLUTIONS', 3, 4], ['SOLUTIONS', 4, 4], ['PROFILE', 1, 2], ['PROFILE', 2, 2], ['CONTACT', 0, 0]];
+  $$('[data-go]').forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); var t = +a.dataset.go; if (a.dataset.panel != null) { if (t === curIdx) setPanel(t, +a.dataset.panel); else { pendingPanel = +a.dataset.panel; go(t); } } else go(t); }); });
+  var QMAP = [0, 1, 2, 3];
+  var NAMES = ['HOME', 'SOLUTIONS', 'PROFILE', 'CONTACT'];
+  var pendingPanel = null;
+  slides.forEach(function (s) { s._panels = $$('.panel', s); s._p = 0; });
+  function label(i) { var s = slides[i], n = s._panels.length; $('#cur').textContent = NAMES[i] || ''; $('#curname').textContent = n ? ((s._p + 1) + '/' + n) : ''; }
+  function setPanel(si, p) {
+    var s = slides[si], ps = s._panels; if (!ps.length) return;
+    p = Math.max(0, Math.min(ps.length - 1, p));
+    var old = ps[s._p], pn = ps[p];
+    if (old && old !== pn) { old.classList.remove('on', 'in'); $$('.card.ready', old).forEach(function (c) { c.classList.remove('ready'); }); }
+    s._p = p; pn.classList.add('on'); void pn.offsetWidth;
+    var th = pn.dataset.theme; s.classList.toggle('light', th === 'light'); s.classList.toggle('cine-slide', th === 'cine');
+    $$('.ch-steps button', s).forEach(function (b, k) { b.classList.toggle('on', k === p); });
+    var pos = $('.ch-pos', s); if (pos) pos.textContent = (p + 1) + '/' + ps.length;
+    if (si === curIdx) {
+      pn.classList.add('in'); frame.classList.toggle('light', th === 'light'); label(si); runCounts();
+      if (typeof prog === 'function') prog();
+      if (typeof logFootprint === 'function' && old !== pn) logFootprint(NAMES[si], '단계 이동', $('.ch-steps button.on span', s) ? $('.ch-steps button.on span', s).textContent : '');
+    }
+  }
+  $$('.chapter').forEach(function (ch) { var s = ch.closest('.slide'), si = slides.indexOf(s); $$('[data-step]', ch).forEach(function (b) { b.addEventListener('click', function () { setPanel(si, +b.dataset.step); }); }); });
   function activate(i, first) {
-    curIdx = i; markQ(i); net.on(i === 0);
+    var prev = curIdx; curIdx = i; markQ(i); net.on(i === 0);
     $$('button', pg).forEach(function (b, k) { b.classList.toggle('on', k === i); });
-    var g = GRP[i] || ['', 0, 0]; $('#cur').textContent = g[0]; $('#curname').textContent = g[2] ? (g[1] + '/' + g[2]) : '';
-    frame.classList.toggle('light', slides[i].classList.contains('light'));
-    slides.forEach(function (s, k) { if (k !== i && s.classList.contains('in')) { s.classList.remove('in'); $$('.card.ready', s).forEach(function (c) { c.classList.remove('ready'); }); } });
-    slides[i].classList.add('in'); runCounts();
-    if (!first) { sweep.classList.remove('go'); void sweep.offsetWidth; sweep.classList.add('go'); if (typeof logFootprint === 'function') logFootprint(slides[i].dataset.name, '섹션 이동'); }
+    slides.forEach(function (s, k) { if (k !== i) { s.classList.remove('in'); (s._panels || []).forEach(function (pn) { pn.classList.remove('in'); $$('.card.ready', pn).forEach(function (c) { c.classList.remove('ready'); }); }); } });
+    var s = slides[i];
+    if (s._panels.length) {
+      var sp = pendingPanel != null ? pendingPanel : (first ? 0 : (prev > i ? s._panels.length - 1 : 0)); pendingPanel = null;
+      setPanel(i, sp); s._panels[s._p].classList.add('in');
+      frame.classList.toggle('light', s.classList.contains('light'));
+    } else { s.classList.add('in'); frame.classList.toggle('light', s.classList.contains('light')); runCounts(); }
+    label(i);
+    if (!first) { sweep.classList.remove('go'); void sweep.offsetWidth; sweep.classList.add('go'); if (typeof logFootprint === 'function') logFootprint(s.dataset.name, '섹션 이동'); }
   }
   activate(0, true);
   if ('IntersectionObserver' in window) {
@@ -347,9 +392,13 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     if (e.key === 'Escape') { closeSheet(); closeMenu(); return; }
     var t = e.target && e.target.tagName; if (t === 'INPUT' || t === 'TEXTAREA') return;
     if (sheet.classList.contains('open') || document.querySelector('.modal-overlay.open')) return;
+    if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && slides[curIdx] && slides[curIdx]._panels.length) { e.preventDefault(); setPanel(curIdx, slides[curIdx]._p + (e.key === 'ArrowRight' ? 1 : -1)); return; }
     if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); go(Math.min(slides.length - 1, curIdx + 1)); }
     if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(Math.max(0, curIdx - 1)); }
   });
+
+  /* 가로 스와이프: 챕터 안 단계 이동 */
+  (function () { var x0 = 0, y0 = 0, ok = false; deck.addEventListener('touchstart', function (e) { var t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; ok = !(e.target.closest && e.target.closest('.showcase, .pf-list, #pfTabs, .modal-overlay')); }, { passive: true }); deck.addEventListener('touchend', function (e) { if (!ok) return; var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0, s = slides[curIdx]; if (!s || !s._panels.length) return; if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.6) setPanel(curIdx, s._p + (dx < 0 ? 1 : -1)); }, { passive: true }); })();
 
   /* 모바일 하단 퀵 메뉴: 현재 위치 표시 */
   function closeMenu() { }
@@ -491,8 +540,12 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     function toggleChat() {
         const chatWindow = document.getElementById('chat-window');
         isChatOpen = !isChatOpen;
+        var fab = document.getElementById('chat-fab'); if (fab) { fab.classList.remove('pop'); void fab.offsetWidth; fab.classList.add('pop'); }
+        clearTimeout(window.__genieT);
+        if (window.genieSmoke) window.genieSmoke();
         if (isChatOpen) {
-            chatWindow.classList.add('open');
+            chatWindow.classList.remove('gout'); chatWindow.classList.remove('gin'); void chatWindow.offsetWidth;
+            chatWindow.classList.add('open', 'gin');
             document.getElementById('chat-input').focus();
             setupChatScrollIsolation();
 
@@ -504,7 +557,8 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
                 loadInitialGreeting();
             }
         } else {
-            chatWindow.classList.remove('open');
+            chatWindow.classList.remove('gin'); chatWindow.classList.add('gout');
+            window.__genieT = setTimeout(function () { chatWindow.classList.remove('open', 'gout'); }, 500);
         }
     }
 
@@ -964,4 +1018,16 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
         }
     });
 
-    
+/* 요술램프 연기 입자: AI 버튼 위치에서 퍼져 나감 */
+window.genieSmoke = function () {
+  var fab = document.getElementById('chat-fab'); if (!fab) return;
+  var sm = document.getElementById('smoke');
+  if (!sm) {
+    sm = document.createElement('div'); sm.id = 'smoke';
+    var h = ''; for (var i = 0; i < 9; i++) { var ang = (-100 + i * 22) * Math.PI / 180, d = 46 + (i % 3) * 22; h += '<span style="--k:' + i + ';--dx:' + Math.round(Math.cos(ang) * d) + 'px;--dy:' + Math.round(Math.sin(ang) * d - 24) + 'px"></span>'; }
+    sm.innerHTML = h; document.body.appendChild(sm);
+  }
+  var r = fab.getBoundingClientRect(); sm.style.left = (r.left + r.width / 2) + 'px'; sm.style.top = (r.top + r.height / 2) + 'px';
+  sm.classList.remove('go'); void sm.offsetWidth; sm.classList.add('go');
+  clearTimeout(window.__smokeT); window.__smokeT = setTimeout(function () { sm.classList.remove('go'); }, 1400);
+};

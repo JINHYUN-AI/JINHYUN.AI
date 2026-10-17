@@ -567,3 +567,84 @@
     #s6 .ghead .body-lg { display: none; }
     #s6 #techMeta { margin-top: 0 !important; }
   }
+
+  /* ===== 챕터 = 한 화면, 안에서 단계 교체(수평 이동 없이 제자리 전환) ===== */
+  .wrap.gs { grid-template-rows: auto minmax(0, 1fr); }
+  .panel { display: none; min-height: 0; grid-template-rows: auto minmax(0, 1fr) auto; gap: clamp(10px, 2.4cqh, 28px); }
+  .panel.on { display: grid; }
+  .slide { transition: background-color .45s ease; }
+  .cine-slide .wrap.gs { grid-template-rows: auto minmax(0, 1fr); }
+  .chapter { margin-bottom: 0; }
+  .ch-steps button { cursor: pointer; }
+  /* 흐름도 */
+  .flow .node text { text-anchor: middle; }
+  .flow .node text.t { font: 800 20px var(--f-body); letter-spacing: -.02em; }
+  .flow .node text.n { font: 700 11px var(--f-mono); letter-spacing: .12em; fill: var(--fg-40); }
+  .flow .node text.c { font: 800 13px var(--f-mono); letter-spacing: .04em; fill: #111; }
+  .flow .node text.c2 { font: 700 10px var(--f-mono); letter-spacing: .12em; fill: var(--amber); }
+  .flow .node.core text.n { fill: rgba(17,19,24,.55); }
+  .flow .node rect.chip { fill: rgba(17,19,24,.14); stroke: rgba(17,19,24,.4); stroke-width: 1; }
+  .flow .node.core rect.chip { fill: rgba(255,255,255,.35); }
+  .flow .node.human rect { stroke: var(--amber); }
+  .flow .node.human text.t { fill: var(--amber); }
+  .flow-m .node text.t { font-size: 16px; }
+  .flow-m .node text.s { font-size: 11.5px; }
+  .flow-m .node text.c { font-size: 11px; }
+  @container (max-width: 860px) {
+    .cine-bar > span:last-child { display: none; }
+    .flow-box { overflow: visible; }
+  }
+  .flow .node text.s { fill: var(--fg-60); }
+  .flow .node.core text.s { fill: rgba(17,19,24,.75); }
+
+  /* ===== 로딩 화면 (표준 인트로: 펄스 로고 + 슬림 프로그레스 바 + 단계 메시지) ===== */
+  #intro { position: fixed; inset: 0; z-index: 9999; background: #111318; display: grid; place-content: center; justify-items: center; gap: 20px; transition: opacity .35s ease; }
+  #intro.out { opacity: 0; pointer-events: none; }
+  #intro.gone { display: none; }
+  .in-logo { font: 900 clamp(34px, 9vw, 64px)/1 var(--f-display); letter-spacing: -.03em; color: #f4f4f0; animation: inpulse 1.8s ease-in-out infinite; }
+  .in-logo i { color: var(--lime); font-style: normal; }
+  @keyframes inpulse { 0%, 100% { transform: scale(1); text-shadow: 0 0 0 rgba(195,244,0,0); } 50% { transform: scale(1.05); text-shadow: 0 0 26px rgba(195,244,0,.55); } }
+  .in-sub { font: 500 13px/1.4 var(--f-body); color: var(--fg-60); letter-spacing: -.01em; text-align: center; padding: 0 20px; }
+  .in-bar { width: min(280px, 70vw); height: 4px; border-radius: 99px; background: rgba(244,244,240,.12); overflow: hidden; }
+  .in-bar i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, #7fa800, var(--lime)); box-shadow: 0 0 12px rgba(195,244,0,.6); transition: width .2s linear; }
+  .in-msg { font: 700 11px/1 var(--f-mono); letter-spacing: .14em; color: var(--fg-40); min-height: 11px; }
+
+  /* ===== AI 비서 창: 요술램프 지니 연출 (버튼에서 빨려 나오고, 다시 빨려 들어감) ===== */
+  .chat-window { transition: none !important; opacity: 0; visibility: hidden; transform-origin: var(--ox, calc(100% - 27px)) var(--oy, calc(100% + 43px)); }
+  .chat-window.open { opacity: 1; visibility: visible; transform: none; }
+  .chat-window.gin { animation: bubbleIn .78s cubic-bezier(.22, 1, .36, 1) both; }
+  .chat-window.gout { animation: bubbleOut .56s cubic-bezier(.5, 0, .75, .4) both; }
+  /* 거대한 말풍선이 연기처럼 부풀어 오름: 점 -> 동그란 덩어리 -> 살짝 넘쳤다가 안착 */
+  @keyframes bubbleIn {
+    0% { opacity: 0; transform: scale(.03); border-radius: 50%; filter: blur(16px) brightness(1.7); }
+    28% { opacity: .9; transform: scale(.5, .42); border-radius: 46%; filter: blur(9px) brightness(1.35); }
+    58% { opacity: 1; transform: scale(1.06, 1.04); border-radius: 22px; filter: blur(2px) brightness(1.1); }
+    80% { transform: scale(.985); border-radius: 6px; filter: blur(0); }
+    100% { opacity: 1; transform: none; border-radius: 2px; filter: none; }
+  }
+  /* 연기처럼 오므라들며 버튼으로 빨려 들어감 */
+  @keyframes bubbleOut {
+    0% { opacity: 1; transform: none; border-radius: 2px; filter: none; }
+    25% { transform: scale(1.04); border-radius: 22px; filter: blur(1px); }
+    65% { opacity: .85; transform: scale(.3, .26); border-radius: 48%; filter: blur(10px) brightness(1.4); }
+    100% { opacity: 0; transform: scale(.03); border-radius: 50%; filter: blur(16px) brightness(1.8); }
+  }
+  /* 말풍선 꼬리: 버튼을 가리킴 */
+  .chat-window::after { content: ''; position: absolute; right: 22px; bottom: -8px; width: 15px; height: 15px; background: #14161b; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); transform: rotate(45deg); }
+  @media (max-width: 480px) { .chat-window::after { display: none; } }
+  /* 버튼 주변 연기 입자 */
+  #smoke { position: fixed; z-index: 1499; width: 0; height: 0; pointer-events: none; }
+  #smoke span { position: absolute; left: -23px; top: -23px; width: 46px; height: 46px; border-radius: 50%; opacity: 0; background: radial-gradient(circle, rgba(195,244,0,.55), rgba(244,244,240,.22) 48%, rgba(244,244,240,0) 72%); filter: blur(6px); }
+  #smoke.go span { animation: puff .95s ease-out both; animation-delay: calc(var(--k) * 45ms); }
+  @keyframes puff { 0% { opacity: 0; transform: translate(0, 0) scale(.25); } 25% { opacity: .75; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(2.4); } }
+  @media (min-width: 481px) and (max-width: 860px) { .chat-window { --ox: calc(100% - 10px); --oy: calc(100% + 10px); } }
+  @media (max-width: 480px) { .chat-window { --ox: calc(100% - 25px); --oy: calc(100% - 75px); } }
+  .chat-fab.pop { animation: fabpop .5s ease; }
+  @keyframes fabpop { 0% { transform: scale(1); } 30% { transform: scale(.82); } 60% { transform: scale(1.14); box-shadow: 0 0 34px rgba(195,244,0,.8); } 100% { transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) { .chat-window.gin, .chat-window.gout { animation-duration: .01ms; } .in-logo { animation: none; } }
+
+  /* ===== 상세 시트 글자 겹침 수정 ===== */
+  .sheet h3 { margin: 22px 0 16px; line-height: 1.05; }
+  .sheet #sGoal { display: block; width: max-content; max-width: 100%; margin: 4px 0 22px; line-height: 1.35; white-space: normal; }
+  .sheet dl { margin: 0 0 22px; }
+  .sheet dd, .sheet p { white-space: pre-line; }

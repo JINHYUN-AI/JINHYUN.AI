@@ -46,6 +46,8 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="shortcut icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="preconnect" href="https://script.google.com">
+    <link rel="dns-prefetch" href="https://script.googleusercontent.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@800;900&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -54,6 +56,12 @@
 </head>
 
 <body>
+<div id="intro" aria-hidden="true">
+  <div class="in-logo">JINHYUN<i>//</i>AI</div>
+  <div class="in-sub">주말의 코드가, 복지의 월요일을 바꿉니다</div>
+  <div class="in-bar"><i id="inBar"></i></div>
+  <div class="in-msg" id="inMsg">환경 구성 중</div>
+</div>
 <div class="frame" id="frame">
   <div class="orb a"></div><div class="orb b"></div><div class="grain"></div>
 
@@ -64,8 +72,8 @@
       <nav class="nav-links">
         <a href="#" data-go="0" data-t="nav_home">홈</a>
         <a href="#" data-go="1" data-t="nav_sol">솔루션</a>
-        <a href="#" data-go="5" data-t="nav_prof">이력·기술</a>
-        <a href="#" data-go="7" data-t="nav_contact">문의</a>
+        <a href="#" data-go="2" data-t="nav_prof">이력·기술</a>
+        <a href="#" data-go="3" data-t="nav_contact">문의</a>
       </nav>
       <span class="lang"><button id="lang-kr" class="lg on" type="button">KR</button> | <button id="lang-en" class="lg" type="button">EN</button></span>
       <button class="btn lime sm" type="button" onclick="openContactModal(event)" data-t="btn_inquiry">문의하기</button>
@@ -93,22 +101,22 @@
           <div class="home-ph">
             <p id="philo"></p>
             <div class="sig">— <span id="sigtxt">코딩하는 사회복지사, 장진현</span></div>
-            <div class="row"><button class="btn lime" type="button" data-go="4"><span data-t="hero_cta1">솔루션 보기</span> →</button></div>
+            <div class="row"><button class="btn lime" type="button" data-go="1" data-panel="3"><span data-t="hero_cta1">솔루션 보기</span> →</button></div>
           </div>
           <div class="stats" id="heroStats"></div>
         </div>
       </div>
     </section>
 
-    <!-- 2 솔루션 1/4 문제: 시네마 -->
-    <section class="slide cine-slide" id="s2" data-name="PROBLEM">
-      <div class="wrap g4">
-    <div class="chapter rise" style="--i:0;--n:4">
-      <span class="ch-name">SOLUTIONS</span>
-      <ol class="ch-steps"><li><button type="button" data-go="1" class="on"><i>01</i><span data-t="st_prob">문제</span></button></li><li><button type="button" data-go="2" class=""><i>02</i><span data-t="st_sol">해법</span></button></li><li><button type="button" data-go="3" class=""><i>03</i><span data-t="st_res">변화</span></button></li><li><button type="button" data-go="4" class=""><i>04</i><span data-t="st_sys">시스템</span></button></li></ol>
-      <span class="ch-pos">1/4</span>
-    </div>
-        <div class="ghead">
+    <!-- 2 솔루션 (문제 · 해법 · 변화 · 시스템): 한 챕터 안의 4개 단계 -->
+    <section class="slide" id="sSol" data-name="SOLUTIONS">
+      <div class="wrap gs">
+        <div class="chapter" style="--n:4">
+          <span class="ch-name">SOLUTIONS</span>
+          <ol class="ch-steps"><li><button type="button" data-step="0" class="on"><i>01</i><span data-t="st_prob">문제</span></button></li><li><button type="button" data-step="1" class=""><i>02</i><span data-t="st_sol">해법</span></button></li><li><button type="button" data-step="2" class=""><i>03</i><span data-t="st_res">변화</span></button></li><li><button type="button" data-step="3" class=""><i>04</i><span data-t="st_sys">시스템</span></button></li></ol>
+          <span class="ch-pos">1/4</span>
+        </div>
+        <div class="panel on" id="s2" data-theme="cine">        <div class="ghead">
           <h2 class="t1 rise" style="--i:1" data-t="prob_h" data-html="1">서류에 묻힌<br>월요일.</h2>
           <p class="body-lg rise" style="--i:2" data-t="prob_p">상담도, 일정도, 보고서도 사람의 손으로. 정작 마주 앉아야 할 사람을 만날 시간이 사라집니다.</p>
         </div>
@@ -126,76 +134,52 @@
           </div>
         </div>
         <div class="cine-bar"><span data-t="illu">ILLUSTRATIVE · 개념도 · 실제 수치 아님</span><span>NEXT → 02 SOLUTION</span></div>
-      </div>
-    </section>
-
-    <!-- 3 솔루션 2/4 해법 -->
-    <section class="slide" id="s3" data-name="SOLUTION">
-      <div class="wrap g4">
-    <div class="chapter rise" style="--i:0;--n:4">
-      <span class="ch-name">SOLUTIONS</span>
-      <ol class="ch-steps"><li><button type="button" data-go="1" class=""><i>01</i><span data-t="st_prob">문제</span></button></li><li><button type="button" data-go="2" class="on"><i>02</i><span data-t="st_sol">해법</span></button></li><li><button type="button" data-go="3" class=""><i>03</i><span data-t="st_res">변화</span></button></li><li><button type="button" data-go="4" class=""><i>04</i><span data-t="st_sys">시스템</span></button></li></ol>
-      <span class="ch-pos">2/4</span>
-    </div>
-        <div class="ghead">
+        </div>
+        <div class="panel" id="s3" data-theme="dark">        <div class="ghead">
           <h2 class="t1 rise" style="--i:1" data-t="sol_h" data-html="1">현장이 만든<br>AI 자동화<span class="lime">.</span></h2>
           <p class="body-lg rise" style="--i:2" data-t="sol_p">사무국장이 매일 겪던 불편을 그대로 코드로 옮겼습니다. 구글 워크스페이스 위에서 반복 업무가 스스로 돌아갑니다.</p>
         </div>
         <div class="flow-box">
-          <svg class="flow flow-d" viewBox="0 0 1300 340" role="img" aria-label="입력부터 자동 처리, 결과물 생성까지의 흐름">
-              <path class="l" pathLength="1" style="--i:0" id="pa" d="M210,170 H320"/>
-              <path class="l" pathLength="1" style="--i:1" id="pb" d="M530,170 H640"/>
-              <path class="l" pathLength="1" style="--i:2" id="pc" d="M890,170 C980,170 980,44 1080,44"/>
-              <path class="l" pathLength="1" style="--i:2" id="pd" d="M890,170 H1080"/>
-              <path class="l" pathLength="1" style="--i:2" id="pe" d="M890,170 C980,170 980,296 1080,296"/>
-              <g class="node" style="--i:0"><rect x="0" y="130" width="210" height="80"/><text x="24" y="166">FORMS</text><text class="s" x="24" y="190">입력 · 신청</text></g>
-              <g class="node" style="--i:1"><rect x="320" y="130" width="210" height="80"/><text x="344" y="166">SHEETS</text><text class="s" x="344" y="190">데이터 저장</text></g>
-              <g class="node core" style="--i:2"><rect x="640" y="108" width="250" height="124"/><text x="668" y="158">APPS SCRIPT</text><text class="s" x="668" y="186">자동 처리 · 조건 판단 · 예약 실행</text></g>
-              <g class="node" style="--i:3"><rect x="1080" y="4" width="220" height="80"/><text x="1104" y="40">GMAIL</text><text class="s" x="1104" y="64">알림 발송</text></g>
-              <g class="node" style="--i:4"><rect x="1080" y="130" width="220" height="80"/><text x="1104" y="166">DOCS</text><text class="s" x="1104" y="190">문서 생성</text></g>
-              <g class="node" style="--i:5"><rect x="1080" y="256" width="220" height="80"/><text x="1104" y="292">DRIVE</text><text class="s" x="1104" y="316">자동 보관</text></g>
-              <circle class="p" r="5"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0s"><mpath href="#pa"/></animateMotion></circle>
-              <circle class="p" r="5"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.5s"><mpath href="#pb"/></animateMotion></circle>
-              <circle class="p" r="5"><animateMotion dur="2.6s" repeatCount="indefinite" begin="1s"><mpath href="#pc"/></animateMotion></circle>
-              <circle class="p" r="5"><animateMotion dur="2.6s" repeatCount="indefinite" begin="1.2s"><mpath href="#pd"/></animateMotion></circle>
-              <circle class="p" r="5"><animateMotion dur="2.6s" repeatCount="indefinite" begin="1.4s"><mpath href="#pe"/></animateMotion></circle>
-            </svg>
-          <svg class="flow flow-m" viewBox="0 0 360 440" role="img" aria-label="입력부터 자동 처리, 결과물 생성까지의 흐름">
-              <path class="l" pathLength="1" style="--i:0" id="qa" d="M180,64 V110"/>
-              <path class="l" pathLength="1" style="--i:1" id="qb" d="M180,174 V222"/>
-              <path class="l" pathLength="1" style="--i:2" id="qc" d="M180,318 C180,352 55,346 55,380"/>
-              <path class="l" pathLength="1" style="--i:2" id="qd" d="M180,318 V380"/>
-              <path class="l" pathLength="1" style="--i:2" id="qe" d="M180,318 C180,352 305,346 305,380"/>
-              <g class="node" style="--i:0"><rect x="70" y="0" width="220" height="64"/><text x="92" y="30">FORMS</text><text class="s" x="92" y="50">입력 · 신청</text></g>
-              <g class="node" style="--i:1"><rect x="70" y="110" width="220" height="64"/><text x="92" y="140">SHEETS</text><text class="s" x="92" y="160">데이터 저장</text></g>
-              <g class="node core" style="--i:2"><rect x="50" y="222" width="260" height="96"/><text x="74" y="266">APPS SCRIPT</text><text class="s" x="74" y="292">자동 처리 · 조건 판단 · 예약 실행</text></g>
-              <g class="node" style="--i:3"><rect x="0" y="380" width="110" height="60"/><text x="14" y="408">GMAIL</text><text class="s" x="14" y="428">알림 발송</text></g>
-              <g class="node" style="--i:4"><rect x="125" y="380" width="110" height="60"/><text x="139" y="408">DOCS</text><text class="s" x="139" y="428">문서 생성</text></g>
-              <g class="node" style="--i:5"><rect x="250" y="380" width="110" height="60"/><text x="264" y="408">DRIVE</text><text class="s" x="264" y="428">자동 보관</text></g>
-              <circle class="p" r="4"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0s"><mpath href="#qa"/></animateMotion></circle>
-              <circle class="p" r="4"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0.4s"><mpath href="#qb"/></animateMotion></circle>
-              <circle class="p" r="4"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0.8s"><mpath href="#qc"/></animateMotion></circle>
-              <circle class="p" r="4"><animateMotion dur="1.8s" repeatCount="indefinite" begin="1s"><mpath href="#qd"/></animateMotion></circle>
-              <circle class="p" r="4"><animateMotion dur="1.8s" repeatCount="indefinite" begin="1.2s"><mpath href="#qe"/></animateMotion></circle>
-            </svg>
+          <svg class="flow flow-d" viewBox="0 0 1300 360" role="img" aria-label="현장 입력에서 개인정보 보호, AI 분석, 사람 검토, 자동 산출까지의 처리 흐름">
+            <path class="l" pathLength="1" style="--i:0" id="pa" d="M200,180 H250"/>
+            <path class="l" pathLength="1" style="--i:1" id="pb" d="M450,180 H500"/>
+            <path class="l" pathLength="1" style="--i:2" id="pc" d="M800,180 H850"/>
+            <path class="l" pathLength="1" style="--i:3" id="pd" d="M1050,180 H1100"/>
+            <g class="node" style="--i:0"><rect x="0" y="105" width="200" height="150"/><text class="n" x="100" y="136">01</text><text class="t" x="100" y="168">현장 입력</text><text class="s" x="100" y="198">구어체 메모 · 음성</text><text class="s" x="100" y="220">모바일 앱 · 폼</text></g>
+            <g class="node" style="--i:1"><rect x="250" y="105" width="200" height="150"/><text class="n" x="350" y="136">02</text><text class="t" x="350" y="168">개인정보 보호</text><text class="s" x="350" y="198">안전한 데이터 처리</text><text class="s" x="350" y="220">인권 보호 모니터링</text></g>
+            <g class="node core" style="--i:2"><rect x="500" y="50" width="300" height="260"/><text class="n" x="650" y="82">03</text><text class="t" x="650" y="114">AI 분석 엔진</text><text class="s" x="650" y="146">37개 지표 자동 분석</text><text class="s" x="650" y="168">4-Way 욕구 매트릭스</text><text class="s" x="650" y="190">시계열 분석 · RAG 대화</text>
+              <rect class="chip" x="519" y="236" width="34" height="34"/><text class="c" x="536" y="258">J</text><rect class="chip" x="559" y="236" width="34" height="34"/><text class="c" x="576" y="258">H</text><rect class="chip" x="599" y="236" width="34" height="34"/><text class="c" x="616" y="258">S</text><rect class="chip" x="639" y="236" width="34" height="34"/><text class="c" x="656" y="258">P</text><rect class="chip" x="679" y="236" width="34" height="34"/><text class="c" x="696" y="258">E</text><rect class="chip" x="719" y="236" width="62" height="34"/><text class="c" x="750" y="258">LUKA</text></g>
+            <g class="node human" style="--i:3"><rect x="850" y="105" width="200" height="150"/><text class="n" x="950" y="136">04</text><text class="t" x="950" y="168">사람 검토</text><text class="s" x="950" y="198">실무자가 확인하고</text><text class="s" x="950" y="220">최종 확정</text><text class="c2" x="950" y="240">HUMAN-IN-THE-LOOP</text></g>
+            <g class="node" style="--i:4"><rect x="1100" y="105" width="200" height="150"/><text class="n" x="1200" y="136">05</text><text class="t" x="1200" y="168">자동 산출</text><text class="s" x="1200" y="198">서식 자동 주입</text><text class="s" x="1200" y="220">리포트 · 차트</text><text class="s" x="1200" y="242">알림 · 보관</text></g>
+            <circle class="p" r="5"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0s"><mpath href="#pa"/></animateMotion></circle>
+            <circle class="p" r="5"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0.45s"><mpath href="#pb"/></animateMotion></circle>
+            <circle class="p" r="5"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0.9s"><mpath href="#pc"/></animateMotion></circle>
+            <circle class="p" r="5"><animateMotion dur="1.8s" repeatCount="indefinite" begin="1.35s"><mpath href="#pd"/></animateMotion></circle>
+          </svg>
+          <svg class="flow flow-m" viewBox="0 -1 360 372" role="img" aria-label="현장 입력에서 개인정보 보호, AI 분석, 사람 검토, 자동 산출까지의 처리 흐름">
+            <path class="l" pathLength="1" style="--i:0" id="qa" d="M180,52 V66"/>
+            <path class="l" pathLength="1" style="--i:1" id="qb" d="M180,118 V132"/>
+            <path class="l" pathLength="1" style="--i:2" id="qc" d="M180,236 V250"/>
+            <path class="l" pathLength="1" style="--i:3" id="qd" d="M180,302 V316"/>
+            <g class="node" style="--i:0"><rect x="30" y="0" width="300" height="52"/><text class="t" x="180" y="22">01 · 현장 입력</text><text class="s" x="180" y="40">구어체 메모 · 음성 · 모바일 앱</text></g>
+            <g class="node" style="--i:1"><rect x="30" y="66" width="300" height="52"/><text class="t" x="180" y="88">02 · 개인정보 보호</text><text class="s" x="180" y="106">안전한 데이터 처리 · 인권 보호</text></g>
+            <g class="node core" style="--i:2"><rect x="30" y="132" width="300" height="104"/><text class="t" x="180" y="156">03 · AI 분석 엔진</text><text class="s" x="180" y="175">37개 지표 · 4-Way 매트릭스 · 시계열</text>
+              <rect class="chip" x="66" y="188" width="30" height="30"/><text class="c" x="81" y="207">J</text><rect class="chip" x="101" y="188" width="30" height="30"/><text class="c" x="116" y="207">H</text><rect class="chip" x="136" y="188" width="30" height="30"/><text class="c" x="151" y="207">S</text><rect class="chip" x="171" y="188" width="30" height="30"/><text class="c" x="186" y="207">P</text><rect class="chip" x="206" y="188" width="30" height="30"/><text class="c" x="221" y="207">E</text><rect class="chip" x="241" y="188" width="54" height="30"/><text class="c" x="268" y="207">LUKA</text></g>
+            <g class="node human" style="--i:3"><rect x="30" y="250" width="300" height="52"/><text class="t" x="180" y="272">04 · 사람 검토</text><text class="s" x="180" y="290">실무자 확인 · 최종 확정</text></g>
+            <g class="node" style="--i:4"><rect x="30" y="316" width="300" height="52"/><text class="t" x="180" y="338">05 · 자동 산출</text><text class="s" x="180" y="356">서식 · 리포트 · 차트 · 알림 · 보관</text></g>
+            <circle class="p" r="4"><animateMotion dur="1.2s" repeatCount="indefinite" begin="0s"><mpath href="#qa"/></animateMotion></circle>
+            <circle class="p" r="4"><animateMotion dur="1.2s" repeatCount="indefinite" begin="0.3s"><mpath href="#qb"/></animateMotion></circle>
+            <circle class="p" r="4"><animateMotion dur="1.2s" repeatCount="indefinite" begin="0.6s"><mpath href="#qc"/></animateMotion></circle>
+            <circle class="p" r="4"><animateMotion dur="1.2s" repeatCount="indefinite" begin="0.9s"><mpath href="#qd"/></animateMotion></circle>
+          </svg>
         </div>
         <div class="logs">
-          <div style="--i:0"><b>✓</b> <span data-t="log1">공문 수신 → 일정표 자동 등록</span></div>
-          <div style="--i:1"><b>✓</b> <span data-t="log2">상담 메모 → 기록서 초안 생성</span></div>
-          <div style="--i:2"><b>✓</b> <span data-t="log3">매일 18:00 → 업무 보고 자동 발송</span> <span style="color:var(--fg-40)">· <span data-t="sample">예시</span></span></div>
+          <div style="--i:0"><b>✓</b> <span data-t="log1">개별관찰 구어체 기록을 일지 형식으로 자동 변환</span></div>
+          <div style="--i:1"><b>✓</b> <span data-t="log2">37개 지표 분석 결과를 행정 서식에 자동 주입</span></div>
+          <div style="--i:2"><b>✓</b> <span data-t="log3">트래픽 한도를 넘어도 끊김 없는 안정 운영</span></div>
         </div>
-      </div>
-    </section>
-
-    <!-- 4 솔루션 3/4 변화: 라이트 반전 -->
-    <section class="slide light" id="s4" data-name="RESULT">
-      <div class="wrap g4">
-    <div class="chapter rise" style="--i:0;--n:4">
-      <span class="ch-name">SOLUTIONS</span>
-      <ol class="ch-steps"><li><button type="button" data-go="1" class=""><i>01</i><span data-t="st_prob">문제</span></button></li><li><button type="button" data-go="2" class=""><i>02</i><span data-t="st_sol">해법</span></button></li><li><button type="button" data-go="3" class="on"><i>03</i><span data-t="st_res">변화</span></button></li><li><button type="button" data-go="4" class=""><i>04</i><span data-t="st_sys">시스템</span></button></li></ol>
-      <span class="ch-pos">3/4</span>
-    </div>
-        <div class="ghead">
+        </div>
+        <div class="panel" id="s4" data-theme="light">        <div class="ghead">
           <h2 class="t1 rise" style="--i:1" data-t="res_h" data-html="1">사람에게<br>돌아온 시간<span class="lime">.</span></h2>
           <p class="body-lg rise" style="--i:2" data-t="res_p">서류가 줄어든 자리에 대화가 들어옵니다. 숫자보다 먼저, 현장의 표정이 달라집니다.</p>
         </div>
@@ -222,18 +206,8 @@
           </div>
         </div>
         <div class="tiles rise" style="--i:4" id="tiles"></div>
-      </div>
-    </section>
-
-    <!-- 5 솔루션 4/4 시스템 -->
-    <section class="slide" id="s5" data-name="SOLUTIONS">
-      <div class="wrap g4">
-    <div class="chapter rise" style="--i:0;--n:4">
-      <span class="ch-name">SOLUTIONS</span>
-      <ol class="ch-steps"><li><button type="button" data-go="1" class=""><i>01</i><span data-t="st_prob">문제</span></button></li><li><button type="button" data-go="2" class=""><i>02</i><span data-t="st_sol">해법</span></button></li><li><button type="button" data-go="3" class=""><i>03</i><span data-t="st_res">변화</span></button></li><li><button type="button" data-go="4" class="on"><i>04</i><span data-t="st_sys">시스템</span></button></li></ol>
-      <span class="ch-pos">4/4</span>
-    </div>
-        <div class="ghead">
+        </div>
+        <div class="panel" id="s5" data-theme="dark">        <div class="ghead">
           <h2 class="t1 rise" style="--i:1" data-t="sys_h" data-html="1">직접 만든 시스템<br><span id="sysCount">24</span>개<span class="lime">.</span></h2>
           <div class="chips rise" style="--i:2" id="filters"></div>
         </div>
@@ -243,18 +217,19 @@
           <div class="rail-prog"><i id="railprog"></i></div>
           <div class="row"><button class="btn sm" id="railL" type="button" aria-label="이전">←</button><button class="btn sm" id="railR" type="button" aria-label="다음">→</button></div>
         </div>
+        </div>
       </div>
     </section>
 
-    <!-- 6 이력 1/2 -->
-    <section class="slide" id="s5b" data-name="PROFILE">
-      <div class="wrap g4">
-    <div class="chapter rise" style="--i:0;--n:2">
-      <span class="ch-name">PROFILE</span>
-      <ol class="ch-steps"><li><button type="button" data-go="5" class="on"><i>01</i><span data-t="st_prof">이력</span></button></li><li><button type="button" data-go="6" class=""><i>02</i><span data-t="st_tech">기술</span></button></li></ol>
-      <span class="ch-pos">1/2</span>
-    </div>
-        <div class="ghead">
+    <!-- 3 이력·기술 (이력 · 기술): 한 챕터 안의 2개 단계 -->
+    <section class="slide" id="sPro" data-name="PROFILE">
+      <div class="wrap gs">
+        <div class="chapter" style="--n:2">
+          <span class="ch-name">PROFILE</span>
+          <ol class="ch-steps"><li><button type="button" data-step="0" class="on"><i>01</i><span data-t="st_prof">이력</span></button></li><li><button type="button" data-step="1" class=""><i>02</i><span data-t="st_tech">기술</span></button></li></ol>
+          <span class="ch-pos">1/2</span>
+        </div>
+        <div class="panel on" id="s5b" data-theme="dark">        <div class="ghead">
           <h2 class="t1 rise" style="--i:1" data-t="prof_h" data-html="1">25년 현장,<br>검증된 이력<span class="lime">.</span></h2>
           <div class="chips rise" style="--i:2" id="pfTabs"></div>
         </div>
@@ -266,28 +241,19 @@
           </div>
         </div>
         <div class="lab rise hide-m" style="--i:6" data-t="prof_note">시트 Profile 탭과 실시간 연동</div>
-      </div>
-    </section>
-
-    <!-- 7 기술 2/2 -->
-    <section class="slide" id="s6" data-name="TECH">
-      <div class="wrap g4">
-    <div class="chapter rise" style="--i:0;--n:2">
-      <span class="ch-name">PROFILE</span>
-      <ol class="ch-steps"><li><button type="button" data-go="5" class=""><i>01</i><span data-t="st_prof">이력</span></button></li><li><button type="button" data-go="6" class="on"><i>02</i><span data-t="st_tech">기술</span></button></li></ol>
-      <span class="ch-pos">2/2</span>
-    </div>
-        <div class="ghead">
+        </div>
+        <div class="panel" id="s6" data-theme="dark">        <div class="ghead">
           <h2 class="t1 rise" style="--i:1" data-t="tech_h" data-html="1">구글 위에서 도는<br>기술 스택<span class="lime">.</span></h2>
           <div class="rise" style="--i:2;justify-self:end;text-align:right"><p class="body-lg" data-t="tech_sub" style="margin-left:auto">구글 클라우드 위에서 안정적으로</p><div class="lab" id="techMeta" style="margin-top:12px;line-height:1.8"></div></div>
         </div>
         <div class="techs" id="techs"></div>
         <div class="lab rise hide-m" style="--i:6" data-t="tech_note">막대 길이 = 계층별 활용 도구 수</div>
+        </div>
       </div>
     </section>
 
     <!-- 9 문의 -->
-    <section class="slide" id="s7" data-name="CONTACT">
+    <section class="slide" id="sCon" data-name="CONTACT">
       <div class="wrap">
         <div class="lab tag rise" style="--i:0"><span class="dot"></span>CONTACT</div>
         <div class="foot-grid">
@@ -308,8 +274,8 @@
   <nav class="qmenu" id="qmenu" aria-label="빠른 메뉴">
     <button type="button" data-go="0" data-q="0" data-t="nav_home">홈</button>
     <button type="button" data-go="1" data-q="1" data-t="nav_sol">솔루션</button>
-    <button type="button" data-go="5" data-q="5" data-t="nav_prof">이력·기술</button>
-    <button type="button" data-go="7" data-q="7" data-t="nav_contact">문의</button>
+    <button type="button" data-go="2" data-q="2" data-t="nav_prof">이력·기술</button>
+    <button type="button" data-go="3" data-q="3" data-t="nav_contact">문의</button>
   </nav>
 
   <div class="sweep" id="sweep"></div>
