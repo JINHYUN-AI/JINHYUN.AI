@@ -81,13 +81,6 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   function oneLine(t) { return String(t || '').split(/\n+/).map(function (x) { return x.trim(); }).filter(Boolean).join(' '); }
   function renderAbout() {
     var w = state.week; if (!w.length) return;
-    var daysEl = $('#days'); daysEl.innerHTML = '';
-    for (var i = 0; i < 7; i++) {
-      (function (i) {
-        var row = w.filter(function (x) { return x.day === i + 1; })[0]; if (!row) return;
-        var b = document.createElement('button'); b.type = 'button'; b.className = 'day' + (i === todayIdx ? ' today' : ''); b.textContent = DN[i]; b.onclick = function () { setDay(i); }; daysEl.appendChild(b);
-      })(i);
-    }
     setDay(todayIdx);
   }
   function setDay(i) {
@@ -546,7 +539,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
         if (isChatOpen) {
             chatWindow.classList.remove('gout'); chatWindow.classList.remove('gin'); void chatWindow.offsetWidth;
             chatWindow.classList.add('open', 'gin');
-            document.getElementById('chat-input').focus();
+            if (!(window.matchMedia && window.matchMedia('(max-width: 860px), (pointer: coarse)').matches)) document.getElementById('chat-input').focus();
             setupChatScrollIsolation();
 
             // 채팅창 열릴 때 말풍선 숨김
@@ -1031,3 +1024,13 @@ window.genieSmoke = function () {
   sm.classList.remove('go'); void sm.offsetWidth; sm.classList.add('go');
   clearTimeout(window.__smokeT); window.__smokeT = setTimeout(function () { sm.classList.remove('go'); }, 1400);
 };
+
+/* 팝업 바깥을 누르면 닫힘: 문의/관리자 등 모달 오버레이, AI 비서 창 */
+document.addEventListener('click', function (e) {
+  var t = e.target; if (!t || !t.closest) return;
+  if (t.classList && t.classList.contains('modal-overlay') && t.classList.contains('open')) { t.classList.remove('open'); return; }
+  if (typeof isChatOpen !== 'undefined' && isChatOpen) {
+    if (t.closest('#chat-window') || t.closest('.chat-fab-container') || t.closest('[onclick*="toggleChat"]') || t.closest('.modal-overlay') || t.closest('.sheet')) return;
+    toggleChat();
+  }
+});
