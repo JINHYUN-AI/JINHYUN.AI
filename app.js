@@ -140,12 +140,22 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   function openSheet(s) {
     $('#sCat').textContent = 'PART ' + s.p + ' · ' + s.pn; $('#sTitle').textContent = s.n; $('#sGoal').textContent = 'GOAL · ' + s.g;
     $('#sFn').textContent = s.f || '-'; $('#sEf').textContent = s.e || '-'; $('#sDe').textContent = s.d || '-';
-    var dm = $('#sDemo'), box = $('#sPlayer'), mm = s.u ? /\/d\/([\w-]+)/.exec(s.u) : null; stopPlayer();
+    var dm = $('#sDemo'), box = $('#sPlayer'), mm = s.u ? /\/d\/([\w-]+)/.exec(s.u) : null, yt = s.u ? ytId(s.u) : ''; stopPlayer();
     dm.textContent = isKr() ? '새 탭에서 열기 ↗' : 'Open in new tab ↗';
     if (s.u) {
       dm.href = s.u; dm.style.display = 'inline-block';
       dm.onclick = function () { if (typeof logFootprint === 'function') logFootprint('Demo', '영상 새 탭', s.n); };
-      if (mm) {
+      if (yt) {
+        box.hidden = false; box.classList.remove('playing');
+        box.style.backgroundImage = 'linear-gradient(rgba(17,19,24,.35), rgba(17,19,24,.55)), url(https://img.youtube.com/vi/' + yt + '/hqdefault.jpg)';
+        box.innerHTML = '<button class="play" type="button" aria-label="' + (isKr() ? '시연영상 재생' : 'Play demo') + '">▶</button><span class="lab"></span>';
+        $('.lab', box).textContent = s.n + (isKr() ? ' · 시연영상' : ' · demo');
+        $('.play', box).onclick = function () {
+          box.classList.add('playing'); box.style.backgroundImage = 'none';
+          box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + yt + '?autoplay=1&rel=0&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="' + esc(s.n) + '"></iframe>';
+          if (typeof logFootprint === 'function') logFootprint('Demo', '영상 시연 클릭', s.n);
+        };
+      } else if (mm) {
         var id = mm[1];
         box.hidden = false; box.classList.remove('playing');
         box.style.backgroundImage = 'linear-gradient(rgba(17,19,24,.35), rgba(17,19,24,.55)), url(https://drive.google.com/thumbnail?id=' + id + '&sz=w800)';
