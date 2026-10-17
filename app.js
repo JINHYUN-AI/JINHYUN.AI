@@ -1,676 +1,314 @@
-    document.addEventListener('DOMContentLoaded', () => {
-        // Init Language
-        const savedLang = localStorage.getItem('site_lang') || 'kr';
-        setLanguage(savedLang);
-        setupModal();
+/* JINHYUN.AI v2 웹앱
+ * - 새 풀스크린 스냅 덱(홈페이지) + 구글 시트 실시간 연동
+ * - 문의·AI 비서·관리자 기능은 기존 코드를 그대로 아래에 이어 붙임(레거시 구간)
+ */
+var currentLang = (function () { try { return localStorage.getItem('site_lang') || 'kr'; } catch (e) { return 'kr'; } })();
 
-        // Init Clock
-        initClock();
+(function () {
+  'use strict';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  function api(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function (ok, fail) { var r = google.script.run.withSuccessHandler(ok).withFailureHandler(fail); r[fn].apply(r, args); });
+  }
+  function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function pkey(p) { var m = /(\d{4})\.(\d{2})/.exec(p || ''); return m ? (+m[1]) * 100 + (+m[2]) : 0; }
+  function isKr() { return currentLang !== 'en'; }
 
-        // 챗봇 환영 말풍선 표시 (3.5초 뒤 시작)
-        setTimeout(() => {
-            showChatWelcomeBubble();
-            startWelcomeMessageRotation();
-        }, 3500);
+  var deck = $('#deck'), frame = $('#frame'), slides = $$('.slide');
+  var state = { systems: [], profile: { items: [], copyright: [] }, metrics: {}, week: [], banners: [], promo: '' };
 
-        // 푸터 타자기 효과 시작
-        initFooterTyping();
+  /* ---------- 언어 ---------- */
+  var EN = {
+    nav_phil: 'Philosophy', label_phil: '', nav_sol: 'Solutions', nav_prof: 'Profile', nav_tech: 'Tech', nav_contact: 'Contact', btn_inquiry: 'Contact',
+    hero_tag: 'SOCIAL WELFARE × AI · SECRETARY GENERAL, LIGHTHOUSE HOUSE',
+    hero_h: '<span class="ko">Weekend code</span><br><span class="ko">rewrites welfare\'s</span><br><span class="ko">Monday<em>.</em></span>',
+    hero_sub: 'AI-powered admin automation, built by a practitioner who knows the field. We give the time spent on paperwork back to people.',
+    hero_cta1: 'View solutions', hero_cta2: 'Ask the AI assistant', today: "Today's line", tomorrow: "Tomorrow's line", rec: 'Monday 09:00',
+    prob_h: 'Buried in<br>paperwork.', prob_p: 'Counseling, schedules, reports, all by hand. The time to sit down with the people who matter disappears.',
+    prob_chart: 'WEEKLY TASK LOAD · CONCEPT', b1: 'Docs & schedules', b2: 'Case notes', b3: 'Reports', b4: 'Minutes', b5: 'Time with people',
+    illu: 'ILLUSTRATIVE · concept only, not real figures',
+    sol_h: 'Built in the field,<br>automated by AI<span class="lime">.</span>', sol_p: 'I turned the daily frustrations of running a facility straight into code. Repetitive work now runs by itself on Google Workspace.',
+    log1: 'Official letter received → schedule auto-registered', log2: 'Counseling memo → draft record generated', log3: 'Every day 18:00 → daily report sent automatically', sample: 'sample',
+    res_h: 'Time returned<br>to people<span class="lime">.</span>', res_p: 'Conversation moves into the space paperwork leaves. Before any number changes, the faces in the field do.',
+    concept: 'The chart below is a concept diagram', cross: 'Crossover · the moment time comes back', g_hi1: 'Counseling', g_lo1: 'Admin time', before: 'Before', after: 'After',
+    sol_sub: 'Systems I built · click a card for details', prof_label: 'Profile & expertise', prof_note: 'Live-linked to the Profile sheet',
+    tech_sub: 'Reliable on Google Cloud', tech_note: 'Bar length = number of tools per layer'
+  };
+  $$('[data-t]').forEach(function (el) { el.dataset.kr = el.innerHTML; });
+  function applyStatic() {
+    $$('[data-t]').forEach(function (el) {
+      var k = el.dataset.t;
+      if (isKr()) el.innerHTML = el.dataset.kr; else if (EN[k] != null) el.innerHTML = EN[k];
     });
+    document.documentElement.lang = isKr() ? 'ko' : 'en';
+    var LG = { kr: { contact_title: '문의하기', form_subject: '제목', form_contact: '기관전화번호 / 연락처', form_message: '문의내용', form_submit: '📨 문의하기 전송', modal_func: '주요 기능', modal_effect: '기대 효과', modal_detail: '상세 설명', demo_btn: '시연해보기' }, en: { contact_title: 'Contact Us', form_subject: 'Subject', form_contact: 'Contact Info', form_message: 'Message', form_submit: '📨 Send Message', modal_func: 'Functions', modal_effect: 'Expected Effects', modal_detail: 'Description', demo_btn: 'Try Demo' } };
+    $$('[data-i18n]').forEach(function (el) { var v = LG[isKr() ? 'kr' : 'en'][el.getAttribute('data-i18n')]; if (v) el.innerText = v; });
+    $$('.lg').forEach(function (b) { var l = b.dataset.lang || (b.id === 'lang-en' ? 'en' : 'kr'); b.classList.toggle('on', l === currentLang); });
+  }
+  function setLang(l) {
+    currentLang = l; try { localStorage.setItem('site_lang', l); } catch (e) { }
+    applyStatic(); loadAll(); renderResult(); renderPortfolio();
+  }
+  $$('.lg').forEach(function (b) { b.addEventListener('click', function () { setLang(b.dataset.lang || (b.id === 'lang-en' ? 'en' : 'kr')); }); });
 
-    // --- Clock Logic (Project 18 Legacy) ---
-    function initClock() {
-        updateClock(true);
-        const now = new Date();
-        const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-        const dayStr = days[now.getDay()];
-        const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}.${dayStr}`;
+  /* ---------- 숫자 유틸 ---------- */
+  function countUp(el) {
+    var to = +el.dataset.to; if (isNaN(to)) return; var t0 = null;
+    (function st(ts) { if (!t0) t0 = ts; var k = Math.max(0, Math.min(1, (ts - t0) / 1200)); k = 1 - Math.pow(1 - k, 4); el.textContent = Math.round(to * k); if (k < 1) requestAnimationFrame(st); })(performance.now());
+  }
+  function numHtml(n, unit) { return '<b><span class="cnt" data-to="' + esc(n) + '">' + esc(n) + '</span><i>' + esc(unit) + '</i></b>'; }
+  function isNum(v) { return v !== '' && !isNaN(Number(String(v).replace(/,/g, ''))); }
+  function runCounts() { if (slides[curIdx]) $$('.cnt', slides[curIdx]).forEach(countUp); }
 
-        const dateDisplay = document.getElementById('dateDisplay');
-        if (dateDisplay) dateDisplay.innerText = dateStr;
+  /* ---------- 상단: 시계·티커 ---------- */
+  function clock() { var d = new Date(), p = function (n) { return String(n).padStart(2, '0'); }; $('#clock').textContent = p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + ' KST'; }
+  clock(); setInterval(clock, 1000);
+  function renderTicker() {
+    var parts = ['SOCIAL WELFARE × AI'].concat(state.banners.map(function (b) { return String(b.title || '').replace(/<br\s*\/?>/gi, ' '); }).filter(Boolean)).concat(['JINHYUN.AI']);
+    var line = parts.join('  //  ') + '  //  ';
+    var h = esc(line).replace(/\/\//g, '<b>//</b>');
+    $('#tick').innerHTML = '<span>' + h + h + '</span><span>' + h + h + '</span>';
+  }
+  renderTicker();
 
-        // Start Interval
-        setInterval(() => updateClock(false), 1000);
+  /* ---------- 운영철학(요일별) ---------- */
+  var DN = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+  var todayIdx = (new Date().getDay() + 6) % 7, curDay = todayIdx;
+  function clean(t) { return String(t || '').replace(/^["“”\s]+|["“”\s]+$/g, ''); }
+  function oneLine(t) { return String(t || '').split(/\n+/).map(function (x) { return x.trim(); }).filter(Boolean).join(' '); }
+  function renderAbout() {
+    var w = state.week; if (!w.length) return;
+    var daysEl = $('#days'), barsEl = $('#bars'); daysEl.innerHTML = ''; barsEl.innerHTML = '';
+    var maxLen = Math.max.apply(null, w.map(function (x) { return clean(x.slogan).length; })) || 1;
+    for (var i = 0; i < 7; i++) {
+      (function (i) {
+        var row = w.filter(function (x) { return x.day === i + 1; })[0]; if (!row) return;
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'day' + (i === todayIdx ? ' today' : ''); b.textContent = DN[i]; b.onclick = function () { setDay(i); }; daysEl.appendChild(b);
+        var bar = document.createElement('div'); bar.className = 'bar'; bar.style.setProperty('--i', i);
+        var len = clean(row.slogan).length; bar.innerHTML = '<i style="--h:' + Math.round(len / maxLen * 100) + '%"><b>' + len + '</b></i><span>' + DN[i] + '</span>';
+        bar.onclick = function () { setDay(i); }; barsEl.appendChild(bar);
+      })(i);
     }
+    setDay(todayIdx);
+  }
+  function setDay(i) {
+    var w = state.week, row = w.filter(function (x) { return x.day === i + 1; })[0]; if (!row) return; curDay = i;
+    var nx = w.filter(function (x) { return x.day === ((i + 1) % 7) + 1; })[0];
+    $$('.day').forEach(function (b, k) { b.classList.toggle('on', b.textContent === DN[i]); });
+    $$('.bar').forEach(function (b) { b.classList.toggle('on', $('span', b).textContent === DN[i]); });
+    $('#quote').textContent = clean(row.slogan); $('#philo').textContent = oneLine(row.philosophy);
+    $('#sigtxt').textContent = clean(row.branding) || 'JINHYUN.AI'; $('#ghost').textContent = DN[i]; $('#next').textContent = nx ? clean(nx.slogan) : '';
+  }
 
-    function updateClock(isInit = false) {
-        const now = new Date();
-        const h = String(now.getHours()).padStart(2, '0');
-        const m = String(now.getMinutes()).padStart(2, '0');
-        const s = String(now.getSeconds()).padStart(2, '0');
-
-        const hEl = document.getElementById('hh');
-        const mEl = document.getElementById('mm');
-        const sEl = document.getElementById('ss');
-
-        if (!hEl || !mEl || !sEl) return;
-
-        if (isInit) {
-            hEl.innerText = h;
-            mEl.innerText = m;
-            sEl.innerText = s;
-            return;
-        }
-
-        if (hEl.innerText !== h) flipClockAnim(hEl, h);
-        if (mEl.innerText !== m) flipClockAnim(mEl, m);
-        if (sEl.innerText !== s) flipClockAnim(sEl, s);
-    }
-
-    function flipClockAnim(el, val) {
-        el.style.transform = 'scaleY(0)';
-        el.style.transition = 'transform 0.15s ease-in';
-        setTimeout(() => {
-            el.innerText = val;
-            el.style.transform = 'scaleY(1)';
-            el.style.transition = 'transform 0.15s ease-out';
-        }, 150);
-    }
-
-    // --- Navigation Logic ---
-    function scrollToSection(id) {
-        const element = document.getElementById(id);
-        if (element) {
-            const headerOffset = 80;
-            const elementPosition = element.getBoundingClientRect().top;
-            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: "smooth"
-            });
-
-            // 인디케이터 즉시 업데이트
-            const targetLink = document.querySelector(`.nav-links a[onclick*="'${id}'"]`);
-            if (targetLink) updateNavIndicator(targetLink);
-
-            // 섹션 이동 로그 기록 (백그라운드)
-            logFootprint(id, '섹션 이동');
-        }
-    }
-
-    // --- Sliding Nav Indicator Logic ---
-    function updateNavIndicator(target) {
-        const indicator = document.querySelector('.nav-indicator');
-        if (!indicator || !target) return;
-
-        const rect = target.getBoundingClientRect();
-        const parentRect = target.parentElement.getBoundingClientRect();
-
-        // 부모 요소 기준 상대 위치 및 너비 계산
-        indicator.style.width = `${rect.width}px`;
-        indicator.style.left = `${rect.left - parentRect.left}px`;
-        indicator.classList.add('visible');
-
-        // 내비게이션 링크 활성화 상태 처리
-        document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-        target.classList.add('active');
-    }
-
-    // Scroll Spy: 스크롤 위치에 따라 메뉴 인디케이터 이동
-    function handleScrollSpy() {
-        const sections = ['hero', 'about', 'systems', 'tools'];
-        let currentSection = '';
-
-        sections.forEach(id => {
-            const section = document.getElementById(id);
-            if (section) {
-                const rect = section.getBoundingClientRect();
-                // 화면 상단에서 일정 거리(150px) 안에 들어오면 활성화
-                if (rect.top <= 150) {
-                    currentSection = id;
-                }
-            }
-        });
-
-        if (currentSection) {
-            const targetLink = document.querySelector(`.nav-links a[onclick*="'${currentSection}'"]`);
-            if (targetLink) updateNavIndicator(targetLink);
-        }
-    }
-
-    // 초기화 및 이벤트 리스너 등록
-    window.addEventListener('scroll', handleScrollSpy);
-    window.addEventListener('resize', () => {
-        const activeLink = document.querySelector('.nav-links a.active');
-        if (activeLink) updateNavIndicator(activeLink);
+  /* ---------- 솔루션 카드 ---------- */
+  var MT = [0, 34, 68, 34, 0], RT = ['-6deg', '4deg', '-3deg', '5deg', '-5deg'];
+  var partSel = 0, fEl = $('#filters'), sc = $('#showcase');
+  function toSys(r) {
+    var m = /Part\s*(\d)/i.exec(r.category || ''); var d = String(r.detail || '').split(/\n*\s*(더 궁금하시면|If you have)/)[0].trim();
+    return { p: m ? +m[1] : 0, pn: String(r.category || '').replace(/^Part\s*\d\s*\.?\s*/i, ''), n: r.name || '', g: r.goal || '', f: r.functions || '', e: r.effects || '', d: d, u: (r.demoUrl && String(r.demoUrl).trim().indexOf('http') === 0) ? String(r.demoUrl).trim() : '' };
+  }
+  function renderFilters() {
+    var parts = []; state.systems.forEach(function (s) { if (parts.map(function (x) { return x[0]; }).indexOf(s.p) < 0) parts.push([s.p, s.pn]); });
+    parts.sort(function (a, b) { return a[0] - b[0]; });
+    var list = [[0, isKr() ? '전체' : 'All']].concat(parts.map(function (x) { return [x[0], 'P' + x[0] + ' ' + x[1]]; }));
+    fEl.innerHTML = '';
+    list.forEach(function (pt) {
+      var n = pt[0] ? state.systems.filter(function (s) { return s.p === pt[0]; }).length : state.systems.length;
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (pt[0] === partSel ? ' on' : ''); b.textContent = pt[1] + ' · ' + n;
+      b.onclick = function () { partSel = pt[0]; $$('.chip', fEl).forEach(function (x) { x.classList.toggle('on', x === b); }); renderCards(); };
+      fEl.appendChild(b);
     });
+  }
+  function renderCards() {
+    var list = state.systems.filter(function (s) { return !partSel || s.p === partSel; });
+    sc.innerHTML = ''; sc.scrollLeft = 0;
+    list.forEach(function (s, i) {
+      var n = state.systems.indexOf(s) + 1, b = document.createElement('button'); b.type = 'button'; b.className = 'card';
+      b.style.setProperty('--i', Math.min(i, 7)); b.style.setProperty('--mt', MT[i % 5] + 'px'); b.style.setProperty('--r', RT[i % 5]);
+      b.innerHTML = '<span class="no">' + String(n).padStart(2, '0') + '</span><span class="lab">// PART ' + s.p + '</span><h4></h4><p class="g"></p><p class="fn"></p><span class="foot"><span></span><span>' + (s.u ? '● ' + (isKr() ? '영상' : 'Demo') + ' →' : '→') + '</span></span>';
+      $('h4', b).textContent = s.n; $('p.g', b).textContent = s.g; $('p.fn', b).textContent = s.f.replace(/\n+/g, ' · '); $('.foot span', b).textContent = s.e;
+      b.addEventListener('animationend', function (e) { if (e.animationName === 'cardIn') b.classList.add('ready'); });
+      b.addEventListener('pointermove', function (e) {
+        var r = b.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        b.style.setProperty('--mx', (e.clientX - r.left) + 'px'); b.style.setProperty('--my', (e.clientY - r.top) + 'px');
+        b.style.setProperty('--ry', ((x - .5) * 8) + 'deg'); b.style.setProperty('--rx', ((.5 - y) * 8) + 'deg');
+      });
+      b.addEventListener('pointerleave', function () { b.style.setProperty('--rx', '0deg'); b.style.setProperty('--ry', '0deg'); });
+      b.onclick = function () { openSheet(s); }; sc.appendChild(b);
+    });
+    var nDemo = state.systems.filter(function (s) { return s.u; }).length;
+    $('#railinfo').textContent = state.systems.length + ' SYSTEMS · ' + nDemo + ' DEMO FILMS / ' + list.length;
+    prog();
+  }
+  function prog() { var w = sc.scrollWidth, c = sc.clientWidth, bar = $('#railprog'); if (w <= c + 2) { bar.style.width = '100%'; bar.style.left = '0'; return; } bar.style.width = (c / w * 100) + '%'; bar.style.left = (sc.scrollLeft / w * 100) + '%'; }
+  sc.addEventListener('scroll', prog, { passive: true });
+  $('#railL').onclick = function () { sc.scrollBy({ left: -sc.clientWidth * .7, behavior: 'smooth' }); };
+  $('#railR').onclick = function () { sc.scrollBy({ left: sc.clientWidth * .7, behavior: 'smooth' }); };
 
-    // 페이지 로드 시 초기 위치 설정
-    setTimeout(() => handleScrollSpy(), 500);
+  var sheet = $('#sheet'), veil = $('#veil');
+  function openSheet(s) {
+    $('#sCat').textContent = 'PART ' + s.p + ' · ' + s.pn; $('#sTitle').textContent = s.n; $('#sGoal').textContent = 'GOAL · ' + s.g;
+    $('#sFn').textContent = s.f || '-'; $('#sEf').textContent = s.e || '-'; $('#sDe').textContent = s.d || '-';
+    var dm = $('#sDemo'); dm.textContent = isKr() ? '시연영상 보기 →' : 'Watch demo →';
+    if (s.u) { dm.href = s.u; dm.style.display = 'inline-flex'; dm.onclick = function () { if (typeof logFootprint === 'function') logFootprint('Demo', '영상 시연 클릭', s.n); }; } else { dm.removeAttribute('href'); dm.style.display = 'none'; }
+    sheet.classList.add('open'); veil.classList.add('open'); deck.classList.add('locked'); sheet.setAttribute('aria-hidden', 'false');
+    if (typeof logFootprint === 'function') logFootprint('Systems', '카드 상세보기', s.n);
+  }
+  function closeSheet() { sheet.classList.remove('open'); veil.classList.remove('open'); deck.classList.remove('locked'); sheet.setAttribute('aria-hidden', 'true'); }
+  $('#close').onclick = closeSheet; veil.onclick = closeSheet;
 
-    // ─────────────────────────────────────────────────────────
-    // 풀페이지 스냅 스크롤 v2 (개선)
-    //   Hero ↔ About ↔ Systems 스냅 이동
-    //   Systems 상단에서 위로 스크롤 → About 스냅
-    //   Systems 하단 이하 → 일반 스크롤
-    // ─────────────────────────────────────────────────────────
-    (function initSnapScroll() {
-
-        const COOLDOWN_MS = 950;   // 스냅 애니메이션 완료까지 추가 입력 차단 시간
-        let cooldown = false;
-
-        // 헤더 높이 반환
-        function headerH() {
-            const h = document.querySelector('.header');
-            return h ? h.offsetHeight : 0;
-        }
-
-        // 섹션별 정확한 스크롤 목표 Y값 반환
-        function sectionY(id) {
-            const el = document.getElementById(id);
-            if (!el) return 0;
-            return id === 'hero' ? 0 : el.offsetTop - headerH();
-        }
-
-        // 현재 스크롤 위치 기준으로 어느 구간인지 판별
-        //   'hero'    : 히어로 구간
-        //   'about'   : 어바웃 구간
-        //   'systems' : 솔루션 섹션 상단(화면 1개 이내) → 위로 스냅 가능 구간
-        //   'deep'    : 솔루션 섹션 깊이 진입 → 일반 스크롤
-        function currentZone() {
-            const aboutTop = sectionY('about');
-            const systemsTop = sectionY('systems');
-            const sy = window.scrollY;
-
-            if (sy < aboutTop - 10) return 'hero';
-            if (sy < systemsTop - 10) return 'about';
-            if (sy < systemsTop + window.innerHeight * 0.8) return 'systems';
-            return 'deep';
-        }
-
-        // 부드럽게 정확한 Y 위치로 스냅 이동
-        function snapTo(id) {
-            if (cooldown) return;
-            cooldown = true;
-            const targetY = sectionY(id);
-            window.scrollTo({ top: targetY, behavior: 'smooth' });
-            setTimeout(() => { cooldown = false; }, COOLDOWN_MS);
-        }
-
-        // ── 마우스 휠 이벤트 ──
-        function onWheel(e) {
-            const zone = currentZone();
-
-            // 깊은 솔루션 구간은 일반 스크롤
-            if (zone === 'deep') return;
-
-            // 쿨다운 중이면 입력 차단(브라우저 기본 스크롤도 막음)
-            if (cooldown) {
-                e.preventDefault();
-                return;
-            }
-
-            const dir = e.deltaY > 0 ? 1 : -1;   // 1: 아래, -1: 위
-
-            if (zone === 'hero') {
-                e.preventDefault();
-                if (dir > 0) snapTo('about');
-                // 위로는 이미 맨 위 → 무동작
-            } else if (zone === 'about') {
-                e.preventDefault();
-                if (dir > 0) snapTo('systems');
-                else snapTo('hero');
-            } else if (zone === 'systems') {
-                // 솔루션 상단에서 위로 → About 스냅
-                if (dir < 0) {
-                    e.preventDefault();
-                    snapTo('about');
-                }
-                // 아래로는 일반 스크롤 허용
-            }
-        }
-
-        // ── 모바일 터치 스와이프 ──
-        let touchStartY = 0;
-        function onTouchStart(e) {
-            touchStartY = e.touches[0].clientY;
-        }
-        function onTouchEnd(e) {
-            if (cooldown) return;
-            const diff = touchStartY - e.changedTouches[0].clientY;
-            if (Math.abs(diff) < 40) return;   // 40px 미만 스와이프 무시
-
-            const dir = diff > 0 ? 1 : -1;
-            const zone = currentZone();
-
-            if (zone === 'hero' && dir > 0) snapTo('about');
-            else if (zone === 'about' && dir > 0) snapTo('systems');
-            else if (zone === 'about' && dir < 0) snapTo('hero');
-            else if (zone === 'systems' && dir < 0) snapTo('about');
-        }
-
-        // 이벤트 등록
-        window.addEventListener('wheel', onWheel, { passive: false });
-        window.addEventListener('touchstart', onTouchStart, { passive: true });
-        window.addEventListener('touchend', onTouchEnd, { passive: true });
-
-    })();
-
-    // --- Mobile Menu Logic ---
-    function toggleMobileMenu() {
-        const overlay = document.getElementById('mobile-menu-overlay');
-        const hamburger = document.querySelector('.hamburger');
-        const isOpen = overlay.classList.contains('open');
-
-        if (isOpen) {
-            closeMobileMenu();
-        } else {
-            overlay.classList.add('open');
-            hamburger.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Prevent background scroll
-        }
+  /* ---------- 이력/전문성 ---------- */
+  var PTABS = { kr: ['활동', '연구·발표', '개발', '출강', '학력·경력', '저작권'], en: ['Activities', 'Research', 'Development', 'Teaching', 'Career', 'Copyright'] };
+  var PCATS = [['Activity'], ['Research'], ['Development'], ['Lecture'], ['Education', 'Experience'], null];
+  var pfT = $('#pfTabs'), pfL = $('#pfList'), mch = $('#mchart'), pfSel = 0;
+  function cat(c) { return state.profile.items.filter(function (r) { return c.indexOf(r.c) >= 0; }); }
+  function renderPortfolio() {
+    var P = state.profile; if (!P.items.length && !P.copyright.length) return;
+    pfT.innerHTML = '';
+    PTABS[isKr() ? 'kr' : 'en'].forEach(function (t, i) { var b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (i === pfSel ? ' on' : ''); b.textContent = t; b.onclick = function () { pfRender(i); }; pfT.appendChild(b); });
+    var dev = cat(['Development']), act = cat(['Activity']), res = cat(['Research']);
+    var devKeys = dev.map(function (r) { return pkey(r.p); }).filter(Boolean).sort(), span = devKeys.length ? (String(devKeys[0]).replace(/(\d{4})(\d{2})/, '$1.$2') + ' ~ ' + String(devKeys[devKeys.length - 1]).replace(/(\d{4})(\d{2})/, '$1.$2')) : '';
+    var y = new Date().getFullYear() * 100 + 1, a26 = act.filter(function (r) { return pkey(r.p) >= y; }).length, r26 = res.filter(function (r) { return pkey(r.p) >= y; }).length, yr = new Date().getFullYear();
+    var K = [
+      [dev.length, isKr() ? '건' : '', isKr() ? '개발한 플랫폼' : 'Platforms built', span],
+      [P.copyright.length, isKr() ? '종' : '', isKr() ? 'AI 소프트웨어 저작권 등록' : 'AI software copyrights', ''],
+      [act.length, isKr() ? '건' : '', isKr() ? '위원·자문 등 외부 활동' : 'Committee & advisory roles', a26 ? (yr + (isKr() ? '년 ' : ': ') + a26 + (isKr() ? '건' : '')) : ''],
+      [res.length, isKr() ? '편' : '', isKr() ? '연구·학술 발표·기고' : 'Research & publications', r26 ? (yr + (isKr() ? '년 ' : ': ') + r26 + (isKr() ? '편' : '')) : '']
+    ];
+    $('#pfK').innerHTML = K.map(function (k, i) { return '<div class="pf-k rise" style="--i:' + (i + 1) + '">' + numHtml(k[0], k[1] || '') + '<span>' + esc(k[2]) + (k[3] ? '<br><em>' + esc(k[3]) + '</em>' : '') + '</span></div>'; }).join('');
+    pfRender(pfSel);
+    renderResult(); renderHeroStats(); runCounts();
+  }
+  function pfRender(k) {
+    pfSel = k; $$('.chip', pfT).forEach(function (b, i) { b.classList.toggle('on', i === k); });
+    var cats = PCATS[k]; pfL.scrollTop = 0;
+    if (!cats) {
+      mch.hidden = true;
+      pfL.innerHTML = '<div class="cr-grid">' + state.profile.copyright.map(function (c, i) { return '<div class="cr-card" style="--i:' + i + '"><span class="id">' + esc(c.id) + '</span><span class="nm">' + esc(c.n) + '</span><span class="rl">' + esc(c.r) + '</span><span class="ft">' + esc(c.f) + '</span></div>'; }).join('') + '</div>';
+      return;
     }
+    var rows = cat(cats).sort(function (a, b) { return pkey(b.p) - pkey(a.p); });
+    if (cats[0] === 'Development' && rows.length) {
+      var ks = rows.map(function (r) { return pkey(r.p); }).filter(Boolean), minK = Math.min.apply(null, ks), maxK = Math.max.apply(null, ks), cnt = {}, keys = [];
+      for (var y = Math.floor(minK / 100), m = minK % 100; y * 100 + m <= maxK;) { var kk = y * 100 + m; cnt[kk] = 0; keys.push(kk); m++; if (m > 12) { m = 1; y++; } }
+      rows.forEach(function (r) { var kk = pkey(r.p); if (cnt[kk] !== undefined) cnt[kk]++; });
+      var mx = Math.max.apply(null, keys.map(function (q) { return cnt[q]; })) || 1, cy = new Date().getFullYear() * 100 + 1;
+      mch.innerHTML = '<span class="cap">' + (isKr() ? '월별 신규 개발' : 'NEW PLATFORMS PER MONTH') + ' · ' + rows.length + (isKr() ? '건 / ' + keys.length + '개월' : ' / ' + keys.length + ' mo') + '</span>' +
+        keys.map(function (q, i) { return '<i class="' + (q >= cy ? 'on' : '') + '" style="--h:' + Math.max(cnt[q] ? 18 : 4, cnt[q] / mx * 100) + ';--k:' + i + '" title="' + Math.floor(q / 100) + '.' + String(q % 100).padStart(2, '0') + ' · ' + cnt[q] + '"></i>'; }).join('');
+      mch.hidden = false;
+    } else { mch.hidden = true; }
+    var cy2 = new Date().getFullYear() * 100 + 1;
+    pfL.innerHTML = rows.map(function (r, i) { return '<div class="pf-item' + (pkey(r.p) >= cy2 ? ' new' : '') + '" style="--i:' + Math.min(i, 14) + '"><span class="pp">' + esc(r.p) + '</span><span class="tt">' + esc(r.t) + '</span><span class="oo">' + esc(r.o) + '</span></div>'; }).join('');
+  }
 
-    function closeMobileMenu() {
-        const overlay = document.getElementById('mobile-menu-overlay');
-        const hamburger = document.querySelector('.hamburger');
+  /* ---------- 히어로 통계 · 변화(성과) ---------- */
+  function mval(key) { var m = state.metrics[key]; return (m && isNum(m.value)) ? m : null; }
+  function renderHeroStats() {
+    var S = state.systems, nDemo = S.filter(function (s) { return s.u; }).length, items = [];
+    if (S.length) items.push([S.length, isKr() ? '건' : '', isKr() ? '직접 만든 자동화 시스템' : 'Automation systems built']);
+    if (nDemo) items.push([nDemo, isKr() ? '편' : '', isKr() ? '시연영상' : 'Demo films']);
+    if (state.profile.copyright.length) items.push([state.profile.copyright.length, isKr() ? '종' : '', isKr() ? 'AI 저작권 등록' : 'AI copyrights registered']);
+    var a = mval('행정시간단축률'); if (a) items.push([a.value, a.unit || '%', a.label || (isKr() ? '반복 행정 시간 단축' : 'Admin time saved')]);
+    $('#heroStats').innerHTML = items.map(function (k) { return '<div class="stat">' + (isNum(k[0]) ? numHtml(k[0], k[1]) : '<b>' + esc(k[0]) + '<i>' + esc(k[1]) + '</i></b>') + '<span>' + esc(k[2]) + '</span></div>'; }).join('');
+  }
+  function renderResult() {
+    var a = mval('행정시간단축률'), S = state.systems;
+    if (a) { $('#kpiN').dataset.to = a.value; $('#kpiN').textContent = a.value; $('#kpiU').textContent = a.unit || '%'; $('#kpiL').textContent = a.label || (isKr() ? '반복 행정 시간 단축' : 'Admin time saved'); }
+    else { $('#kpiN').dataset.to = S.length; $('#kpiN').textContent = S.length; $('#kpiU').textContent = isKr() ? '건' : ''; $('#kpiL').textContent = isKr() ? '직접 만든 자동화 시스템' : 'Automation systems built'; }
+    $('#gUp').textContent = isKr() ? '시간 ↑' : 'time ↑'; $('#gDown').textContent = a ? ('↓ ' + a.value + (a.unit || '%')) : '↓';
+    var P = state.profile, dev = cat(['Development']).length, act = cat(['Activity']).length, T = [];
+    if (dev) T.push([dev, isKr() ? '건' : '', isKr() ? '개발한 플랫폼' : 'Platforms built']);
+    if (P.copyright.length) T.push([P.copyright.length, isKr() ? '종' : '', isKr() ? 'AI 저작권 등록' : 'AI copyrights']);
+    if (act) T.push([act, isKr() ? '건' : '', isKr() ? '위원·자문 등 외부 활동' : 'Committee & advisory roles']);
+    var h = mval('월절감시간'); if (h) T.push([h.value, h.unit || (isKr() ? '시간' : 'h'), h.label || (isKr() ? '월 절감 시간' : 'Hours saved / month')]);
+    var el = $('#tiles'); el.style.gridTemplateColumns = 'repeat(' + Math.max(T.length, 1) + ', 1fr)';
+    el.innerHTML = T.map(function (k) { return '<div class="tile">' + (isNum(k[0]) ? numHtml(k[0], k[1]) : '<b>' + esc(k[0]) + esc(k[1]) + '</b>') + '<span>' + esc(k[2]) + '</span></div>'; }).join('');
+  }
 
-        overlay.classList.remove('open');
-        hamburger.classList.remove('active');
-        document.body.style.overflow = ''; // Restore scroll
-    }
+  /* ---------- 기술 / 푸터 / 영상 ---------- */
+  function renderTech(groups) {
+    var n = 0; groups.forEach(function (g) { n += g.items.length; });
+    $('#techMeta').innerHTML = groups.length + ' LAYERS · ' + n + ' TOOLS<br><span style="color:var(--fg-40)">BUILT ON GOOGLE WORKSPACE</span>';
+    $('#techs').innerHTML = groups.map(function (g, i) { return '<div class="tech" style="--i:' + i + '"><span class="k">0' + (i + 1) + '</span><h5>' + esc(g.category) + '</h5><div class="tags">' + g.items.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') + '</div><div class="meter" title="' + g.items.length + '"><i style="--w:' + (g.items.length / 4 * 100) + '%;--i:' + i + '"></i></div></div>'; }).join('');
+  }
+  function renderFooter(d) {
+    if (!d) return;
+    if (d.description) $('#footer-desc').textContent = d.description;
+    if (d.copyright) { var c = $('#footer-copyright'); if (c && c.firstChild) c.firstChild.textContent = String(d.copyright).replace(/<[^>]*>/g, '') + ' '; }
+  }
+  $('#playBtn').addEventListener('click', function () {
+    var url = state.promo || ''; var m = url.match(/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/); var id = (m && m[7] && m[7].length === 11) ? m[7] : '';
+    if (!id) return; var box = $('#promo-video-container'); box.classList.add('playing');
+    box.insertAdjacentHTML('beforeend', '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="홍보영상"></iframe>');
+    if (typeof logFootprint === 'function') logFootprint('Footer', '홍보영상 재생');
+  });
 
-    // --- Translations ---
-    // Note: Footer translations removed from here as they are now fully Sheet-driven.
-    // Kept Nav/Section titles for static switching speed.
-    const translations = {
-        kr: {
-            nav_home: "홈",
-            nav_about: "운영철학",
-            nav_solutions: "솔루션",
-            nav_tech: "기술 스택",
-            nav_contact: "문의하기",
-            about_label: "PHILOSOPHY",
-            about_title_sub: "코딩하는 사무국장",
-            about_slogan: "\"주말의 코드로 복지의 월요일을 혁신하다\"",
-            about_bio_1: "모두가 잠든 밤, 저는 사회복지 기관을 위한 알고리즘을 설계합니다.",
-            about_bio_2: "손이 많이 가는 행정은 AI에게 맡기고, 우리 선생님들의 눈길은 이용자에게 머물게 하는 것.",
-            about_bio_3: "그것이 제가 주말을 반납하고 코드를 짜는 유일한 이유입니다.",
-            about_signature: "코딩하는 사무국장 장진현",
-            sect_solutions_title: "검증된 솔루션",
-            sect_solutions_desc: "실제 현장에 도입되어 데이터로 검증된 자동화 행정 시스템",
-            sect_tech_title: "기술 스택",
-            sect_tech_desc: "구글 클라우드 인프라 기반의 강력한 보안과 안정성",
-            contact_title: "문의하기",
-            form_subject: "제목",
-            form_name: "작성자",
-            form_contact: "연락처 (이메일/전화번호)",
-            form_message: "문의 내용",
-            form_submit: "보내기",
-            modal_func: "주요 기능",
-            modal_effect: "기대 효과",
-            modal_detail: "상세 설명",
-            demo_btn: "시연해보기"
-        },
-        en: {
-            nav_home: "Home",
-            nav_about: "Philosophy",
-            nav_solutions: "Solutions",
-            nav_tech: "Tech Stack",
-            nav_contact: "Contact",
-            about_label: "PHILOSOPHY",
-            about_title_sub: "The Coding Secretary",
-            about_slogan: "\"Innovating Welfare Mondays with Weekend Code\"",
-            about_bio_1: "While everyone sleeps, I design algorithms for social welfare organizations.",
-            about_bio_2: "Delegate the heavy admin to AI, so our staff can keep their eyes on the people who matter.",
-            about_bio_3: "That is the only reason I give up my weekends to write code.",
-            about_signature: "The Coding Secretary, Jang Jin-hyun",
-            sect_solutions_title: "Verified Solutions",
-            sect_solutions_desc: "Data-driven automated systems deployed in real-world scenarios.",
-            sect_tech_title: "Technology Stack",
-            sect_tech_desc: "Built on Google's robust cloud infrastructure for maximum reliability.",
-            contact_title: "Contact Us",
-            form_subject: "Subject",
-            form_name: "Name",
-            form_contact: "Contact Info",
-            form_message: "Message",
-            form_submit: "Send Message",
-            modal_func: "Functions",
-            modal_effect: "Expected Effects",
-            modal_detail: "Description",
-            demo_btn: "Try Demo"
-        }
-    };
+  /* ---------- 데이터 로드 ---------- */
+  function loadAll() {
+    var L = isKr() ? 'kr' : 'en';
+    api('getBannerData', L).then(function (d) { state.banners = d || []; renderTicker(); }).catch(warn);
+    api('getAboutWeek', L).then(function (d) { state.week = d || []; renderAbout(); }).catch(function () {
+      api('getAboutData', L).then(function (a) { if (!a) return; state.week = [{ day: todayIdx + 1, slogan: a.slogan, philosophy: a.philosophy, branding: a.branding }]; renderAbout(); }).catch(warn);
+    });
+    api('getSystemData', L).then(function (d) { state.systems = (d || []).map(toSys); partSel = 0; renderFilters(); renderCards(); renderHeroStats(); renderResult(); }).catch(function (e) { warn(e); sc.innerHTML = '<p style="color:var(--fg-60);padding:20px">데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>'; });
+    api('getTools', L).then(renderTech).catch(warn);
+    api('getFooterData', L).then(renderFooter).catch(warn);
+    api('getMetricsData', L).then(function (d) { state.metrics = d || {}; renderHeroStats(); renderResult(); }).catch(warn);
+  }
+  function warn(e) { if (window.console) console.warn('[JINHYUN.AI]', e && e.message ? e.message : e); }
+  var profLoaded = false;
+  function loadProfile() { api('getProfileData', isKr() ? 'kr' : 'en').then(function (d) { state.profile = d || { items: [], copyright: [] }; profLoaded = true; renderPortfolio(); }).catch(warn); }
+  api('getPromoVideoUrl').then(function (u) { state.promo = u || ''; if (!u) $('#playBtn').style.display = 'none'; }).catch(warn);
 
-    let currentLang = 'kr';
+  /* ---------- 덱: 이동·활성화 ---------- */
+  var pg = $('#pager'), curIdx = 0, sweep = $('#sweep');
+  $('#total').textContent = String(slides.length).padStart(2, '0');
+  slides.forEach(function (s, i) { var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', s.dataset.name); b.onclick = function () { go(i); }; pg.appendChild(b); });
+  function go(i) { closeMenu(); slides[i].scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  $$('[data-go]').forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); go(+a.dataset.go); }); });
+  function activate(i, first) {
+    curIdx = i;
+    $$('button', pg).forEach(function (b, k) { b.classList.toggle('on', k === i); });
+    $('#cur').textContent = String(i + 1).padStart(2, '0'); $('#curname').textContent = slides[i].dataset.name;
+    frame.classList.toggle('light', slides[i].classList.contains('light'));
+    slides.forEach(function (s, k) { if (k !== i && s.classList.contains('in')) { s.classList.remove('in'); $$('.card.ready', s).forEach(function (c) { c.classList.remove('ready'); }); } });
+    slides[i].classList.add('in'); runCounts();
+    if (!first) { sweep.classList.remove('go'); void sweep.offsetWidth; sweep.classList.add('go'); if (typeof logFootprint === 'function') logFootprint(slides[i].dataset.name, '섹션 이동'); }
+  }
+  activate(0, true);
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { var k = slides.indexOf(e.target); if (k !== curIdx) activate(k); } }); }, { root: deck, threshold: .6 });
+    slides.forEach(function (s) { io.observe(s); });
+  } else { slides.forEach(function (s) { s.classList.add('in'); }); }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { closeSheet(); closeMenu(); return; }
+    var t = e.target && e.target.tagName; if (t === 'INPUT' || t === 'TEXTAREA') return;
+    if (sheet.classList.contains('open') || document.querySelector('.modal-overlay.open')) return;
+    if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); go(Math.min(slides.length - 1, curIdx + 1)); }
+    if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(Math.max(0, curIdx - 1)); }
+  });
 
-    function toggleLanguage() {
-        const newLang = currentLang === 'kr' ? 'en' : 'kr';
-        setLanguage(newLang);
-    }
+  /* 모바일 메뉴 */
+  var menu = $('#menu'), burger = $('#burger');
+  function closeMenu() { menu.classList.remove('open'); burger.classList.remove('on'); }
+  burger.addEventListener('click', function () { var o = menu.classList.toggle('open'); burger.classList.toggle('on', o); });
 
-    function setLanguage(lang) {
-        currentLang = lang;
-        localStorage.setItem('site_lang', lang);
+  /* 타이핑 */
+  var PH = { kr: ['> 서류는 코드에게, 사람은 사람에게.', '> 주말에 심고, 월요일에 거둔다.', '> 코딩하는 사회복지사, 장진현'], en: ['> Paperwork to code, people to people.', '> Plant on the weekend, harvest on Monday.', '> The Coding Social Worker, Jang Jin-hyun'] };
+  var pi = 0, ci = 0, del = false, ty = $('#type');
+  (function tick() { var arr = PH[isKr() ? 'kr' : 'en'], p = arr[pi % arr.length]; ty.textContent = p.slice(0, ci); if (!del && ci >= p.length) { del = true; return setTimeout(tick, 1800); } if (del && ci <= 0) { del = false; pi = (pi + 1) % arr.length; } ci += del ? -1 : 1; setTimeout(tick, del ? 25 : 55); })();
 
-        // Toggle UI (Desktop)
-        document.getElementById('lang-kr').classList.toggle('active', lang === 'kr');
-        document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  /* 시작 */
+  applyStatic(); loadAll(); loadProfile();
+  setTimeout(function () { if (typeof showChatWelcomeBubble === 'function') { showChatWelcomeBubble(); startWelcomeMessageRotation(); } }, 3500);
+  window.addEventListener('resize', prog);
+})();
 
-        // Toggle UI (Mobile)
-        document.getElementById('lang-kr-mobile').classList.toggle('active', lang === 'kr');
-        document.getElementById('lang-en-mobile').classList.toggle('active', lang === 'en');
-
-        // Static Translations
-        const elements = document.querySelectorAll('[data-i18n]');
-        elements.forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (translations[lang] && translations[lang][key]) {
-                el.innerText = translations[lang][key];
-            }
-        });
-
-        // Logo Switching - JINHYUN.AI 브랜딩 유지
-        // (언어 전환 시에도 JINHYUN.AI 로고는 고정)
-        // 필요 시 아래 주석 해제하여 국문/영문 전환 가능
-        // const logoContainer = document.querySelector('.logo');
-        // logoContainer.innerHTML = lang === 'kr'
-        //     ? `JINHYUN<span class="logo-highlight">.AI</span>`
-        //     : `JINHYUN<span class="logo-highlight">.AI</span>`;
-
-        // Reload Data
-        loadBanner(lang);
-        loadSystems(lang);
-        loadTools(lang);
-        loadFooter(lang);
-        loadAboutData();
-        loadPromoVideo();
-    }
-
-    function loadAboutData() {
-        google.script.run
-            .withSuccessHandler(data => {
-                if (!data) return;
-
-                // 슬로건
-                document.getElementById('about-slogan').innerText = data.slogan;
-
-                // 미션 & 철학 (줄바꿈 처리)
-                const bioContainer = document.getElementById('about-bio');
-                if (data.philosophy) {
-                    const paragraphs = data.philosophy.split('\n').filter(p => p.trim() !== '');
-                    bioContainer.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
-                }
-
-                // 퍼스널 브랜딩 (서명)
-                document.getElementById('about-signature').innerText = data.branding;
-            })
-            .getAboutData(currentLang);
-    }
-
-    // --- Carousel Logic (Mantine Style) ---
-    let currentSlide = 0;
-    let slidesData = [];
-    let slideInterval;
-
-    function loadBanner(lang) {
-        const carousel = document.getElementById('hero-carousel');
-        const dotsContainer = document.getElementById('carousel-dots');
-
-        const spinnerHtml = `
-            <div class="loader-skeleton">
-                <div class="ios-spinner">
-                    <div></div><div></div><div></div><div></div><div></div><div></div>
-                    <div></div><div></div><div></div><div></div><div></div><div></div>
-                </div>
-            </div>`;
-        carousel.innerHTML = spinnerHtml;
-
-        google.script.run
-            .withSuccessHandler(data => {
-                slidesData = data;
-                if (!slidesData || slidesData.length === 0) {
-                    carousel.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--mantine-color-dark-1);">No slides available.</div>';
-                    return;
-                }
-
-                carousel.innerHTML = '';
-                dotsContainer.innerHTML = '';
-
-                slidesData.forEach((slide, index) => {
-                    const slideEl = document.createElement('div');
-                    slideEl.className = `carousel-slide ${index === 0 ? 'active' : ''}`;
-
-                    const bgUrl = slide.image || 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1600&q=80';
-
-                    slideEl.innerHTML = `
-                        <div class="slide-bg-container">
-                             <img src="${bgUrl}" class="slide-bg" alt="Slide Background">
-                             <div class="slide-overlay"></div>
-                        </div>
-                        <div class="slide-content animate-enter">
-                            ${slide.subtitle ? `<div class="mantine-Badge" style="background:var(--mantine-color-blue-9); color:white; margin-bottom:1rem;">${slide.subtitle}</div>` : ''}
-                            <h1 class="slide-title">${slide.title}</h1>
-                            ${slide.linkText ? `
-                                <a href="${slide.linkUrl || '#'}" class="btn btn-primary" style="margin-top: 1rem;"
-                                   onclick="${slide.linkUrl.startsWith('#') ?
-                                `event.preventDefault(); document.querySelector('${slide.linkUrl}').scrollIntoView({behavior: 'smooth'})` : ''}">
-                                   ${slide.linkText}
-                                </a>` : ''}
-                        </div>
-                    `;
-                    carousel.appendChild(slideEl);
-
-                    const dot = document.createElement('div');
-                    dot.className = `dot ${index === 0 ? 'active' : ''}`;
-                    dot.onclick = () => goToSlide(index);
-                    dotsContainer.appendChild(dot);
-                });
-
-                startAutoSlide();
-            })
-            .withFailureHandler(err => {
-                carousel.innerHTML = `<div style="color:red;padding:20px;">Failed to load banner: ${err.message}</div>`;
-            })
-            .getBannerData(lang);
-    }
-
-    function moveSlide(n) {
-        let next = currentSlide + n;
-        if (next >= slidesData.length) next = 0;
-        if (next < 0) next = slidesData.length - 1;
-        goToSlide(next);
-    }
-
-    function goToSlide(n) {
-        resetAutoSlide();
-        const slides = document.querySelectorAll('.carousel-slide');
-        const dots = document.querySelectorAll('.dot');
-
-        if (slides[currentSlide]) slides[currentSlide].classList.remove('active');
-        if (dots[currentSlide]) dots[currentSlide].classList.remove('active');
-
-        currentSlide = n;
-
-        if (slides[currentSlide]) slides[currentSlide].classList.add('active');
-        if (dots[currentSlide]) dots[currentSlide].classList.add('active');
-    }
-
-    function startAutoSlide() {
-        if (slideInterval) clearInterval(slideInterval);
-        slideInterval = setInterval(() => {
-            moveSlide(1);
-        }, 6000);
-    }
-
-    function resetAutoSlide() {
-        startAutoSlide();
-    }
-
-
-    // --- System Cards Logic (Mantine Cards) ---
-    let systemsData = [];
-    const sysTranslations = {
-        all: { kr: "전체보기", en: "All" }
-    };
-
-    function loadSystems(lang) {
-        const container = document.getElementById('systems-container');
-        const tabsContainer = document.getElementById('systems-tabs');
-
-        google.script.run
-            .withSuccessHandler(data => {
-                systemsData = data || [];
-                if (systemsData.length === 0) {
-                    container.innerHTML = '<p>No systems found.</p>';
-                    return;
-                }
-
-                // Extract unique categories
-                const categories = [...new Set(systemsData.map(item => item.category || 'Other'))];
-
-                // Render Tabs
-                tabsContainer.innerHTML = '';
-
-                // Add "All" tab
-                const allTab = document.createElement('div');
-                allTab.className = 'tab-item active';
-                allTab.innerText = sysTranslations.all[lang] || sysTranslations.all.kr;
-                allTab.onclick = (e) => switchTab(e, 'All');
-                tabsContainer.appendChild(allTab);
-
-                categories.forEach(cat => {
-                    const tab = document.createElement('div');
-                    tab.className = 'tab-item';
-                    tab.innerText = cat;
-                    tab.onclick = (e) => switchTab(e, cat);
-                    tabsContainer.appendChild(tab);
-                });
-
-                // Initial Render (All)
-                renderSystems('All');
-            })
-            .withFailureHandler(err => {
-                container.innerHTML = `<p style="color:red">Failed to load systems: ${err.message}</p>`;
-            })
-            .getSystemData(lang);
-    }
-
-    function switchTab(e, category) {
-        // Remove active class from all tabs
-        const tabs = document.querySelectorAll('.tab-item');
-        tabs.forEach(t => t.classList.remove('active'));
-
-        // Add to current
-        if (e && e.currentTarget) {
-            e.currentTarget.classList.add('active');
-        }
-
-        // Render
-        renderSystems(category);
-    }
-
-    function renderSystems(filterCategory) {
-        const container = document.getElementById('systems-container');
-        container.innerHTML = '<div class="grid animate-enter"></div>';
-        const grid = container.querySelector('.grid');
-
-        const filtered = filterCategory === 'All'
-            ? systemsData
-            : systemsData.filter(s => s.category === filterCategory);
-
-        filtered.forEach((sys, idx) => {
-            const card = document.createElement('div');
-            card.className = 'mantine-Card';
-            card.style.animationDelay = `${idx * 0.05}s`;
-            card.onclick = () => openModal(sys);
-
-            const imageUrl = sys.image && sys.image.startsWith('http')
-                ? sys.image
-                : 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80';
-
-            const truncate = (text, len) => {
-                if (!text) return "";
-                return text.length > len ? text.substring(0, len) + '...' : text;
-            };
-
-            // 시연 영상 배지 로직 (demoUrl 유무에 따라)
-            const demoBadge = (sys.demoUrl && sys.demoUrl.trim().startsWith('http'))
-                ? `<div class="card-demo-badge">🎬 시연영상 업로드</div>`
-                : '';
-
-            card.innerHTML = `
-                <div class="card-image">
-                    <img src="${imageUrl}" alt="${sys.name}">
-                    ${demoBadge}
-                </div>
-                <div class="card-content">
-                    <div class="card-header">
-                        <div class="mantine-Badge" style="background:var(--mantine-color-dark-5); color:var(--mantine-color-dark-1);">${sys.goal ? truncate(sys.goal, 15) : 'SYSTEM'}</div>
-                    </div>
-                    <h3 class="card-title">${sys.name}</h3>
-                    <p style="font-size:0.9rem; color:var(--mantine-color-dark-2); margin-top:8px; line-height:1.5;">${sys.functions ? truncate(sys.functions, 60) : ''}</p>
-                    
-                    <div class="card-meta">
-                        <span class="card-link">View Details &rarr;</span>
-                    </div>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
-    }
-
-    function loadTools(lang) {
-        const container = document.getElementById('tech-grid');
-
-        google.script.run
-            .withSuccessHandler(groups => {
-                container.innerHTML = '';
-                groups.forEach((group, idx) => {
-                    const div = document.createElement('div');
-                    div.className = 'tech-group animate-enter';
-                    div.style.animationDelay = `${idx * 0.1 + 0.3}s`;
-
-                    const tags = group.items.map(item => `<span class="tech-badge">${item}</span>`).join('');
-                    div.innerHTML = `
-                      <h3>${group.category}</h3>
-                      <div class="tech-list">${tags}</div>
-                    `;
-                    container.appendChild(div);
-                });
-            })
-            .withFailureHandler(err => {
-                container.innerHTML = `<p style="color:red">Failed to load tech stack: ${err.message}</p>`;
-            })
-            .getTools(lang);
-    }
-
-
-    // --- Footer Logic ---
-    function loadFooter(lang) {
-        google.script.run
-            .withSuccessHandler(data => {
-                // 설명 문구 업데이트 (시트 데이터가 있으면 덮어쓰고, 없으면 기본 HTML 문구 유지)
-                if (data && data.description) {
-                    const descEl = document.getElementById('footer-desc');
-                    if (descEl) descEl.innerText = data.description;
-                }
-
-                // 국장님 성함 업데이트
-                if (data && data.director) {
-                    const directorEl = document.getElementById('footer-director');
-                    if (directorEl) directorEl.innerText = data.director;
-                }
-
-                // 이메일 업데이트
-                if (data && data.email) {
-                    const emailEl = document.getElementById('footer-email');
-                    if (emailEl) emailEl.innerText = data.email;
-                }
-
-                // 저작권 정보 업데이트
-                if (data && data.copyright) {
-                    const copyrightEl = document.getElementById('footer-copyright');
-                    if (copyrightEl) copyrightEl.innerHTML = data.copyright;
-                }
-            })
-            .withFailureHandler(err => {
-                console.error("Footer load failed", err);
-            })
-            .getFooterData(lang);
-    }
-
-    // --- Modal Logic ---
+/* ===================================================================
+ * 아래는 기존 사이트의 문의·AI 비서·관리자·방문기록 기능(변경 없이 유지)
+ * =================================================================== */
 
     // Generic Close helper
     // Generic Close helper
@@ -753,80 +391,6 @@
         };
     });
 
-    // System Modal
-    function setupModal() {
-        const modal = document.getElementById('modal-overlay');
-        // Click outside to close
-        modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('open'); };
-        document.getElementById('contact-modal').onclick = (e) => { if (e.target === document.getElementById('contact-modal')) closeModal('contact-modal'); };
-    }
-
-    function openModal(data) {
-        document.getElementById('modal-title').textContent = data.name;
-        document.getElementById('modal-goal').textContent = data.goal || '-';
-        document.getElementById('modal-functions').textContent = data.functions || '-';
-        document.getElementById('modal-effects').textContent = data.effects || '-';
-        document.getElementById('modal-detail').textContent = data.detail || '-';
-
-        const img = document.getElementById('modal-image');
-        img.src = data.image && data.image.startsWith('http')
-            ? data.image
-            : 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80';
-
-        document.getElementById('modal-overlay').classList.add('open');
-
-        // 상세보기 클릭 로그 기록 (백그라운드)
-        logFootprint('Systems', '카드 상세보기', data.name);
-
-        // Demo Button Logic (Dynamic Text)
-        const demoContainer = document.getElementById('modal-demo-container');
-        const demoBtn = document.getElementById('modal-demo-btn');
-        const demoBtnText = demoBtn.querySelector('[data-i18n="demo_btn"]') || demoBtn;
-
-        demoContainer.style.display = 'block'; // 버튼 컨테이너는 항상 표시
-
-        if (data.demoUrl && data.demoUrl.trim().startsWith('http')) {
-            // 링크가 있는 경우
-            demoBtnText.innerText = currentLang === 'kr' ? "시연영상 보기" : "View Demo";
-            demoBtn.style.opacity = "1";
-            demoBtn.style.cursor = "pointer";
-            demoBtn.onclick = () => {
-                // 시연 영상 클릭 로그 기록
-                logFootprint('Demo', '영상 시연 클릭', data.name);
-                window.open(data.demoUrl, '_blank');
-            };
-        } else {
-            // 링크가 없는 경우
-            demoBtnText.innerText = currentLang === 'kr' ? "시연영상 준비중..." : "Demo Coming Soon...";
-            demoBtn.style.opacity = "0.6";
-            demoBtn.style.cursor = "default";
-            demoBtn.onclick = (e) => {
-                e.preventDefault();
-                alert(currentLang === 'kr' ? "현재 시연 영상을 준비하고 있습니다. 조금만 기다려 주세요!" : "We are preparing the demo video. Please check back soon!");
-            };
-        }
-    }
-
-    function loadPromoVideo() {
-        google.script.run
-            .withSuccessHandler(url => {
-                if (!url) return;
-                const container = document.getElementById('promo-video-container');
-
-                // YouTube ID extraction
-                const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-                const match = url.match(regExp);
-                const videoId = (match && match[7].length == 11) ? match[7] : false;
-
-                if (videoId) {
-                    container.innerHTML = `<iframe 
-                        src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&rel=0&modestbranding=1" 
-                        allow="autoplay; encrypted-media" 
-                        allowfullscreen></iframe>`;
-                }
-            })
-            .getPromoVideoUrl();
-    }
 
     // --- AI Assistant Chat Logic ---
     let chatHistory = [];
@@ -1341,45 +905,4 @@
         }
     });
 
-    /**
-     * 푸터 타자기 효과 (Typewriter Effect)
-     * "코딩하는 사회복지사, 장진현" 문구를 타이핑 후 10초 대기, 다시 반복
-     */
-    function initFooterTyping() {
-        const text = "코딩하는 사회복지사, 장진현";
-        const element = document.getElementById('footer-typing');
-        if (!element) return;
-
-        let index = 0;
-        let isDeleting = false;
-
-        function type() {
-            const currentContent = text.substring(0, index);
-            element.innerText = currentContent;
-
-            if (!isDeleting) {
-                // 한 글자씩 추가
-                if (index < text.length) {
-                    index++;
-                    setTimeout(type, 120 + Math.random() * 50); // 타이핑 속도 (약간의 랜덤성)
-                } else {
-                    // 전체 타이핑 완료 -> 10초 대기 후 삭제 시작
-                    isDeleting = true;
-                    setTimeout(type, 10000);
-                }
-            } else {
-                // 한 글자씩 삭제 (빠르게)
-                if (index > 0) {
-                    index--;
-                    setTimeout(type, 50);
-                } else {
-                    // 삭제 완료 -> 다시 타이핑 시작
-                    isDeleting = false;
-                    setTimeout(type, 500);
-                }
-            }
-        }
-
-        type();
-    }
-
+    

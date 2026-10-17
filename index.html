@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#111318">
 
     <!-- 1. 기본 타이틀 & 검색엔진 최적화(SEO) 메타 태그 -->
     <title>JINHYUN.AI | 코딩하는 사무국장 장진현 (등대의집 스마트워크 / 장진현 교수)</title>
@@ -47,249 +48,274 @@
     <link rel="apple-touch-icon" href="favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@800;900&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="legacy.css">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="inner-header">
-            <a href="#" class="logo" onclick="event.preventDefault()">
-                JINHYUN<span class="logo-highlight">.AI</span>
-            </a>
+<div class="frame" id="frame">
+  <div class="orb a"></div><div class="orb b"></div><div class="grain"></div>
 
-            <!-- Desktop Navigation -->
-            <nav class="nav-links">
-                <a onclick="scrollToSection('hero')" data-i18n="nav_home">Home</a>
-                <a onclick="scrollToSection('about')" data-i18n="nav_about">운영철학</a>
-                <a onclick="scrollToSection('systems')" data-i18n="nav_solutions">Solutions</a>
-                <a onclick="scrollToSection('tools')" data-i18n="nav_tech">Tech Stack</a>
-                <a onclick="openContactModal(event)" data-i18n="nav_contact" class="nav-contact-link">Contact</a>
-                <a onclick="openAdminModal()" class="nav-admin-link">관리자</a>
-
-                <!-- Sliding Indicator Bar -->
-                <div class="nav-indicator"></div>
-
-                <!-- Language Toggle -->
-                <div class="lang-toggle" onclick="toggleLanguage()">
-                    <span id="lang-kr" class="active">KR</span>
-                    <span class="divider">|</span>
-                    <span id="lang-en">EN</span>
-                </div>
-
-                <!-- Clock Container (from Project 18) -->
-                <div class="clock-container">
-                    <div class="date-now" id="dateDisplay">2026.03.12.목요일</div>
-                    <div class="time-wrapper">
-                        <div class="time-card"><span id="hh">00</span>
-                            <div class="time-card-bottom-shade"></div>
-                        </div>
-                        <div class="time-sep">:</div>
-                        <div class="time-card"><span id="mm">00</span>
-                            <div class="time-card-bottom-shade"></div>
-                        </div>
-                        <div class="time-sep">:</div>
-                        <div class="time-card"><span id="ss">00</span>
-                            <div class="time-card-bottom-shade"></div>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            <!-- Mobile Controls -->
-            <div class="mobile-controls">
-                <!-- Hamburger Button -->
-                <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Toggle menu">
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                </button>
-
-                <!-- Language Toggle (Mobile) -->
-                <div class="lang-toggle" onclick="toggleLanguage()">
-                    <span id="lang-kr-mobile" class="active">KR</span>
-                    <span class="divider">|</span>
-                    <span id="lang-en-mobile">EN</span>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Mobile Menu Overlay -->
-    <div id="mobile-menu-overlay" class="mobile-menu-overlay">
-        <nav class="mobile-menu-nav">
-            <a onclick="scrollToSection('hero'); closeMobileMenu();" data-i18n="nav_home">Home</a>
-            <a onclick="scrollToSection('about'); closeMobileMenu();" data-i18n="nav_about">운영철학</a>
-            <a onclick="scrollToSection('systems'); closeMobileMenu();" data-i18n="nav_solutions">Solutions</a>
-            <a onclick="scrollToSection('tools'); closeMobileMenu();" data-i18n="nav_tech">Tech Stack</a>
-            <a onclick="openContactModal(event); closeMobileMenu();" data-i18n="nav_contact">Contact</a>
-        </nav>
+  <header class="top">
+    <div class="ticker"><div class="ticker-track" id="tick"></div></div>
+    <div class="nav">
+      <a class="logo" href="#" data-go="0">JINHYUN<i>//</i>AI</a>
+      <nav class="nav-links">
+        <a href="#" data-go="1" data-t="nav_phil">운영철학</a>
+        <a href="#" data-go="5" data-t="nav_sol">솔루션</a>
+        <a href="#" data-go="6" data-t="nav_prof">이력</a>
+        <a href="#" data-go="7" data-t="nav_tech">기술</a>
+        <a href="#" data-go="8" data-t="nav_contact">문의</a>
+      </nav>
+      <span class="lang"><button id="lang-kr" class="lg on" type="button">KR</button> | <button id="lang-en" class="lg" type="button">EN</button></span>
+      <span class="clock" id="clock">00:00:00</span>
+      <button class="btn lime sm" type="button" onclick="openContactModal(event)" data-t="btn_inquiry">문의하기</button>
+      <button class="burger" id="burger" type="button" aria-label="메뉴"><i></i><i></i><i></i></button>
     </div>
+  </header>
 
-    <main>
-        <!-- Hero Section -->
-        <section id="hero" class="hero-section">
-            <!-- 슬라이드 캐러셀 -->
-            <div id="hero-carousel" class="carousel">
-                <div class="loader-skeleton">
-                    <div class="ios-spinner">
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-dots" id="carousel-dots"></div>
+  <nav class="menu" id="menu" aria-label="모바일 메뉴">
+    <a href="#" data-go="1"><span data-t="nav_phil">운영철학</span><small>PHILOSOPHY</small></a>
+    <a href="#" data-go="5"><span data-t="nav_sol">솔루션</span><small>SOLUTIONS</small></a>
+    <a href="#" data-go="6"><span data-t="nav_prof">이력</span><small>PROFILE</small></a>
+    <a href="#" data-go="7"><span data-t="nav_tech">기술</span><small>TECH</small></a>
+    <a href="#" data-go="8"><span data-t="nav_contact">문의</span><small>CONTACT</small></a>
+    <div class="mrow"><span class="lang"><button class="lg on" data-lang="kr" type="button">KR</button> | <button class="lg" data-lang="en" type="button">EN</button></span><button class="adm2" type="button" onclick="openAdminModal()">관리자</button></div>
+  </nav>
 
-        </section>
+  <main class="deck" id="deck" tabindex="0">
 
-        <!-- About Section (소개) -->
-        <section id="about" class="about-section">
-            <div class="about-bg-glow"></div>
-            <div class="container about-container">
-                <div class="about-title-block">
-                    <span class="about-label" data-i18n="about_label">ABOUT</span>
-                    <h1 class="about-main-title">
-                        <span class="about-title-main">JINHYUN<span class="about-title-dot">.AI</span></span>
-                    </h1>
-                    <p class="about-slogan" id="about-slogan">Loading branding...</p>
-                </div>
-                <div class="about-divider"></div>
-                <div id="about-bio" class="about-bio">
-                    <p>Loading Mission & Philosophy...</p>
-                </div>
-                <p class="about-signature" id="about-signature">Loading...</p>
-            </div>
-        </section>
-
-
-
-        <!-- System Cards Section -->
-        <section id="systems" class="section">
-            <div class="container">
-                <div class="section-intro">
-                    <h2 class="section-title" data-i18n="sect_solutions_title">Verified Solutions</h2>
-                    <p class="section-subtitle" data-i18n="sect_solutions_desc">Data-driven automated administrative
-                        systems
-                        deployed in real-world scenarios.</p>
-                </div>
-                <div class="tabs-wrapper">
-                    <div id="systems-tabs" class="tabs-container"></div>
-                </div>
-                <div id="systems-container">
-                    <!-- Skeleton -->
-                    <div class="grid skeleton-grid">
-                        <div class="skeleton-card"></div>
-                        <div class="skeleton-card"></div>
-                        <div class="skeleton-card"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- Tech Stack Section -->
-        <section id="tools" class="section" style="background-color: var(--mantine-color-dark-7);">
-            <div class="container">
-                <div class="section-intro">
-                    <h2 class="section-title" data-i18n="sect_tech_title">Technology Stack</h2>
-                    <p class="section-subtitle" data-i18n="sect_tech_desc">Built on Google's robust cloud infrastructure
-                        for
-                        maximum reliability and security.</p>
-                </div>
-                <div id="tech-grid" class="tech-grid">
-                    <!-- JS Injected -->
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-layout">
-                <!-- Promo Video Section (Left) -->
-                <div class="footer-video-section">
-                    <div id="promo-video-container" class="promo-video-wrapper">
-                        <!-- YouTube Iframe Injected -->
-                    </div>
-                </div>
-
-                <!-- Footer Info Section (Right) -->
-                <div class="footer-main-info">
-                    <div class="footer-brand">
-                        <div class="logo">JINHYUN<span class="logo-highlight">.AI</span></div>
-                        <p class="footer-desc" id="footer-desc">공감과 데이터가 만나는 지점에서 AI 기반 기술로 사회복지의 미래를 설계합니다</p>
-                    </div>
-
-                    <!-- Details (Director, Email) 대신 타이핑 효과 추가 -->
-                    <div class="footer-typing-container">
-                        <p id="footer-typing" class="footer-typing-text"></p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="copyright" id="footer-copyright">
-                <!-- Copyright from Sheets -->
-            </div>
+    <!-- 1 히어로 -->
+    <section class="slide" id="s0" data-name="HERO">
+      <div class="wrap">
+        <div class="lab tag rise" style="--i:0"><span class="dot"></span><span data-t="hero_tag">SOCIAL WELFARE × AI · 등대의집 사무국장</span></div>
+        <div class="hero-mid">
+          <h1 class="xl rise" style="--i:1" data-t="hero_h" data-html="1"><span class="ko">주말의 코드가,</span><br><span class="ko">복지의 월요일을</span><br><span class="ko">바꿉니다<em>.</em></span></h1>
         </div>
-    </footer>
-
-    <!-- System Detail Modal -->
-    <div id="modal-overlay" class="modal-overlay">
-        <div class="modal-container">
-            <div class="modal-header">
-                <h3 id="modal-title">System Detail</h3>
-                <button class="close-btn" onclick="closeModal('modal-overlay')">&times;</button>
+        <div>
+          <div class="hero-foot rise" style="--i:2">
+            <p class="body-lg" data-t="hero_sub">현장을 아는 사무국장이 직접 만든 AI 행정 자동화. 서류에 쓰던 시간을, 사람에게 돌려드립니다.</p>
+            <div class="row">
+              <button class="btn lime" type="button" data-go="5"><span data-t="hero_cta1">솔루션 보기</span> →</button>
+              <button class="btn" type="button" onclick="toggleChat()" data-t="hero_cta2">AI 비서에게 묻기</button>
             </div>
-            <div class="modal-body">
-                <div class="modal-media-wrapper">
-                    <img id="modal-image" src="" alt="System Preview">
-                </div>
-
-                <div class="modal-badges" style="margin-bottom: 20px;">
-                    <span class="mantine-Badge" id="modal-goal"
-                        style="background: rgba(34, 139, 230, 0.15); color: #74c0fc;">Goal</span>
-                </div>
-
-                <div class="modal-content-grid">
-                    <div class="modal-section">
-                        <h4 data-i18n="modal_func">Functions</h4>
-                        <p id="modal-functions">Loading...</p>
-                    </div>
-                    <div class="modal-section">
-                        <h4 data-i18n="modal_effect">Expected Effects</h4>
-                        <p id="modal-effects">Loading...</p>
-                    </div>
-                </div>
-
-                <div class="modal-section" style="margin-top: 24px;">
-                    <!-- <h4 data-i18n="modal_detail">Detailed Description</h4>  Using i18n key -->
-                    <h4 data-i18n="modal_detail">Description</h4>
-                    <p id="modal-detail"
-                        style="white-space: pre-wrap; color:var(--mantine-color-dark-2); line-height: 1.6;">-</p>
-                </div>
-
-                <!-- Demo Button -->
-                <div id="modal-demo-container" style="margin-top: 32px; text-align: center; display: none;">
-                    <button id="modal-demo-btn" class="btn btn-primary"
-                        style="width: 100%; height: 48px; font-size: 1rem;">
-                        <span data-i18n="demo_btn">Try Demo</span>
-                    </button>
-                </div>
-            </div>
+          </div>
+          <div class="stats rise" style="--i:3;margin-top:clamp(14px,3cqh,32px)" id="heroStats"></div>
         </div>
-    </div>
+      </div>
+    </section>
+
+    <!-- 2 운영철학 -->
+    <section class="slide" id="s1" data-name="PHILOSOPHY">
+      <div class="wrap">
+        <div class="rt rise" style="--i:0">
+          <span class="lab tag"><span class="dot"></span>01 · PHILOSOPHY <span data-t="label_phil">운영철학</span></span>
+          <div class="days" id="days"></div>
+        </div>
+        <div class="quote-box"><div class="ghost" id="ghost" aria-hidden="true">MON</div><h2 class="quote rise" style="--i:1" id="quote">&nbsp;</h2></div>
+        <div class="three rise" style="--i:2">
+          <div><span class="lab">Mission &amp; Philosophy · <span data-t="today">오늘의 문구</span></span><p id="philo"></p><div class="sig">— <span id="sigtxt">코딩하는 사회복지사, 장진현</span></div></div>
+          <div class="c2"><span class="lab">7 DAYS · 7 SLOGANS</span><div class="bars" id="bars"></div></div>
+          <div class="c3"><span class="lab">TOMORROW · <span data-t="tomorrow">내일의 문구</span></span><p id="next"></p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 문제: 시네마 -->
+    <section class="slide cine-slide" id="s2" data-name="PROBLEM">
+      <div class="wrap">
+        <div class="cine-bar"><span><b>●</b> REC · <span data-t="rec">월요일 오전 09:00</span></span><span>SCENE 01 / PROBLEM</span></div>
+        <div class="cine-stage">
+          <div class="cine">
+            <div style="position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center">
+              <span class="lab" style="color:var(--amber)">01 / PROBLEM</span>
+              <h2 class="h-xl" data-t="prob_h" data-html="1">서류에 묻힌<br>월요일.</h2>
+              <p class="body-lg" data-t="prob_p">상담도, 일정도, 보고서도 사람의 손으로. 정작 마주 앉아야 할 사람을 만날 시간이 사라집니다.</p>
+            </div>
+            <div class="hbars" style="position:relative;z-index:1">
+              <span class="lab" data-t="prob_chart">WEEKLY TASK LOAD · 업무 부담 개념도</span>
+              <div class="hrow" style="--i:0"><span data-t="b1">공문·일정 정리</span><div class="htrack"><div class="hfill" style="--w:86%;--i:0"></div></div></div>
+              <div class="hrow" style="--i:1"><span data-t="b2">상담 기록</span><div class="htrack"><div class="hfill" style="--w:74%;--i:1"></div></div></div>
+              <div class="hrow" style="--i:2"><span data-t="b3">보고서 작성</span><div class="htrack"><div class="hfill" style="--w:64%;--i:2"></div></div></div>
+              <div class="hrow" style="--i:3"><span data-t="b4">회의록·취합</span><div class="htrack"><div class="hfill" style="--w:48%;--i:3"></div></div></div>
+              <div class="hrow human" style="--i:4"><span data-t="b5">사람과 마주 앉는 시간</span><div class="htrack"><div class="hfill" style="--w:12%;--i:4"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="cine-bar"><span data-t="illu">ILLUSTRATIVE · 개념도 · 실제 수치 아님</span><span>NEXT → SCENE 02</span></div>
+      </div>
+    </section>
+
+    <!-- 4 해법 -->
+    <section class="slide" id="s3" data-name="SOLUTION">
+      <div class="wrap">
+        <div class="rt rise" style="--i:0"><span class="lab tag" style="color:var(--lime)"><span class="dot"></span>02 / SOLUTION</span><span class="lab hide-m">GOOGLE WORKSPACE PIPELINE</span></div>
+        <div class="s3">
+          <div class="s3-h">
+            <h2 class="h-xl rise" style="--i:1" data-t="sol_h" data-html="1">현장이 만든<br>AI 자동화<span class="lime">.</span></h2>
+            <p class="body-lg rise" style="--i:2" data-t="sol_p">사무국장이 매일 겪던 불편을 그대로 코드로 옮겼습니다. 구글 워크스페이스 위에서 반복 업무가 스스로 돌아갑니다.</p>
+          </div>
+          <div class="flow-box">
+            <svg class="flow flow-d" viewBox="0 0 1300 340" role="img" aria-label="입력부터 자동 처리, 결과물 생성까지의 흐름">
+              <path class="l" pathLength="1" style="--i:0" id="pa" d="M210,170 H320"/>
+              <path class="l" pathLength="1" style="--i:1" id="pb" d="M530,170 H640"/>
+              <path class="l" pathLength="1" style="--i:2" id="pc" d="M890,170 C980,170 980,44 1080,44"/>
+              <path class="l" pathLength="1" style="--i:2" id="pd" d="M890,170 H1080"/>
+              <path class="l" pathLength="1" style="--i:2" id="pe" d="M890,170 C980,170 980,296 1080,296"/>
+              <g class="node" style="--i:0"><rect x="0" y="130" width="210" height="80"/><text x="24" y="166">FORMS</text><text class="s" x="24" y="190">입력 · 신청</text></g>
+              <g class="node" style="--i:1"><rect x="320" y="130" width="210" height="80"/><text x="344" y="166">SHEETS</text><text class="s" x="344" y="190">데이터 저장</text></g>
+              <g class="node core" style="--i:2"><rect x="640" y="108" width="250" height="124"/><text x="668" y="158">APPS SCRIPT</text><text class="s" x="668" y="186">자동 처리 · 조건 판단 · 예약 실행</text></g>
+              <g class="node" style="--i:3"><rect x="1080" y="4" width="220" height="80"/><text x="1104" y="40">GMAIL</text><text class="s" x="1104" y="64">알림 발송</text></g>
+              <g class="node" style="--i:4"><rect x="1080" y="130" width="220" height="80"/><text x="1104" y="166">DOCS</text><text class="s" x="1104" y="190">문서 생성</text></g>
+              <g class="node" style="--i:5"><rect x="1080" y="256" width="220" height="80"/><text x="1104" y="292">DRIVE</text><text class="s" x="1104" y="316">자동 보관</text></g>
+              <circle class="p" r="5"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0s"><mpath href="#pa"/></animateMotion></circle>
+              <circle class="p" r="5"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.5s"><mpath href="#pb"/></animateMotion></circle>
+              <circle class="p" r="5"><animateMotion dur="2.6s" repeatCount="indefinite" begin="1s"><mpath href="#pc"/></animateMotion></circle>
+              <circle class="p" r="5"><animateMotion dur="2.6s" repeatCount="indefinite" begin="1.2s"><mpath href="#pd"/></animateMotion></circle>
+              <circle class="p" r="5"><animateMotion dur="2.6s" repeatCount="indefinite" begin="1.4s"><mpath href="#pe"/></animateMotion></circle>
+            </svg>
+            <svg class="flow flow-m" viewBox="0 0 360 440" role="img" aria-label="입력부터 자동 처리, 결과물 생성까지의 흐름">
+              <path class="l" pathLength="1" style="--i:0" id="qa" d="M180,64 V110"/>
+              <path class="l" pathLength="1" style="--i:1" id="qb" d="M180,174 V222"/>
+              <path class="l" pathLength="1" style="--i:2" id="qc" d="M180,318 C180,352 55,346 55,380"/>
+              <path class="l" pathLength="1" style="--i:2" id="qd" d="M180,318 V380"/>
+              <path class="l" pathLength="1" style="--i:2" id="qe" d="M180,318 C180,352 305,346 305,380"/>
+              <g class="node" style="--i:0"><rect x="70" y="0" width="220" height="64"/><text x="92" y="30">FORMS</text><text class="s" x="92" y="50">입력 · 신청</text></g>
+              <g class="node" style="--i:1"><rect x="70" y="110" width="220" height="64"/><text x="92" y="140">SHEETS</text><text class="s" x="92" y="160">데이터 저장</text></g>
+              <g class="node core" style="--i:2"><rect x="50" y="222" width="260" height="96"/><text x="74" y="266">APPS SCRIPT</text><text class="s" x="74" y="292">자동 처리 · 조건 판단 · 예약 실행</text></g>
+              <g class="node" style="--i:3"><rect x="0" y="380" width="110" height="60"/><text x="14" y="408">GMAIL</text><text class="s" x="14" y="428">알림 발송</text></g>
+              <g class="node" style="--i:4"><rect x="125" y="380" width="110" height="60"/><text x="139" y="408">DOCS</text><text class="s" x="139" y="428">문서 생성</text></g>
+              <g class="node" style="--i:5"><rect x="250" y="380" width="110" height="60"/><text x="264" y="408">DRIVE</text><text class="s" x="264" y="428">자동 보관</text></g>
+              <circle class="p" r="4"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0s"><mpath href="#qa"/></animateMotion></circle>
+              <circle class="p" r="4"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0.4s"><mpath href="#qb"/></animateMotion></circle>
+              <circle class="p" r="4"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0.8s"><mpath href="#qc"/></animateMotion></circle>
+              <circle class="p" r="4"><animateMotion dur="1.8s" repeatCount="indefinite" begin="1s"><mpath href="#qd"/></animateMotion></circle>
+              <circle class="p" r="4"><animateMotion dur="1.8s" repeatCount="indefinite" begin="1.2s"><mpath href="#qe"/></animateMotion></circle>
+            </svg>
+          </div>
+        </div>
+        <div class="logs">
+          <div style="--i:0"><b>✓</b> <span data-t="log1">공문 수신 → 일정표 자동 등록</span></div>
+          <div style="--i:1"><b>✓</b> <span data-t="log2">상담 메모 → 기록서 초안 생성</span></div>
+          <div style="--i:2"><b>✓</b> <span data-t="log3">매일 18:00 → 업무 보고 자동 발송</span> <span style="color:var(--fg-40)">· <span data-t="sample">예시</span></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 변화: 라이트 반전 -->
+    <section class="slide light" id="s4" data-name="RESULT">
+      <div class="wrap">
+        <div class="rt rise" style="--i:0"><span class="lab tag"><span class="dot" style="background:#111318;box-shadow:none"></span>03 / RESULT</span><span class="lab hide-m">BEFORE → AFTER</span></div>
+        <div class="r4">
+          <div class="r4-l">
+            <h2 class="h-xl rise" style="--i:1" data-t="res_h" data-html="1">사람에게<br>돌아온 시간<span class="lime">.</span></h2>
+            <p class="body-lg rise" style="--i:2" data-t="res_p">서류가 줄어든 자리에 대화가 들어옵니다. 숫자보다 먼저, 현장의 표정이 달라집니다.</p>
+          </div>
+          <div class="r4-r">
+            <div class="kpi rise" style="--i:2">
+              <div class="kpi-n"><span class="cnt" id="kpiN" data-to="0">0</span><i id="kpiU">건</i></div>
+              <div class="kpi-c"><b id="kpiL">직접 만든 자동화 시스템</b><span data-t="concept">아래 그래프는 개념도입니다</span></div>
+            </div>
+            <svg class="chart" viewBox="0 0 700 340" role="img" aria-label="도입 전후 행정 시간은 줄고 상담 시간은 늘어나는 개념 그래프">
+              <g><line class="g" x1="40" x2="560" y1="60" y2="60"/><line class="g" x1="40" x2="560" y1="130" y2="130"/><line class="g" x1="40" x2="560" y1="200" y2="200"/><line class="g" x1="40" x2="560" y1="270" y2="270"/><line class="g" x1="40" x2="560" y1="300" y2="300" style="stroke:rgba(17,19,24,.35)"/></g>
+              <path class="area" d="M40,265 C190,262 280,140 400,100 S520,66 560,58 L560,300 L40,300 Z"/>
+              <path class="a" pathLength="1" d="M40,70 C190,72 290,175 400,215 S520,255 560,262"/>
+              <path class="b" pathLength="1" d="M40,265 C190,262 280,140 400,100 S520,66 560,58"/>
+              <line class="lead" x1="286" y1="146" x2="286" y2="26"/>
+              <circle class="x" cx="286" cy="158" r="7"/><circle class="ring" cx="286" cy="158" r="14"/>
+              <text x="286" y="16" text-anchor="middle" class="t-dark" data-t="cross">교차점 · 시간이 돌아오는 순간</text>
+              <text x="572" y="54" class="t-dark" data-t="g_hi1">상담·대면</text><text x="572" y="72" class="t-dark" id="gUp">시간 ↑</text>
+              <text x="572" y="258" class="t-mute" data-t="g_lo1">행정 시간</text><text x="572" y="276" class="t-mute" id="gDown">↓</text>
+              <text x="40" y="324" class="t-mute" data-t="before">도입 전</text><text x="560" y="324" text-anchor="end" class="t-mute" data-t="after">도입 후</text>
+            </svg>
+          </div>
+        </div>
+        <div class="tiles rise" style="--i:4" id="tiles"></div>
+      </div>
+    </section>
+
+    <!-- 6 솔루션 -->
+    <section class="slide" id="s5" data-name="SOLUTIONS">
+      <div class="wrap">
+        <div class="rt">
+          <h2 class="h2 rise" style="--i:0">Verified<br>Solutions<span class="lime">.</span><span class="sub" data-t="sol_sub">직접 만든 시스템 · 카드를 눌러 상세 보기</span></h2>
+          <div class="chips rise" style="--i:1" id="filters"></div>
+        </div>
+        <div class="showcase" id="showcase"></div>
+        <div class="railbar rise" style="--i:6">
+          <span class="lab hide-m" id="railinfo"></span>
+          <div class="rail-prog"><i id="railprog"></i></div>
+          <div class="row"><button class="btn sm" id="railL" type="button" aria-label="이전">←</button><button class="btn sm" id="railR" type="button" aria-label="다음">→</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 이력/전문성 -->
+    <section class="slide" id="s5b" data-name="PROFILE">
+      <div class="wrap">
+        <div class="rt rise" style="--i:0">
+          <span class="lab tag"><span class="dot"></span>05 · PROFILE <span data-t="prof_label">이력·전문성</span></span>
+          <div class="chips" id="pfTabs"></div>
+        </div>
+        <div class="pf">
+          <div class="pf-l" id="pfK"></div>
+          <div class="pf-r rise" style="--i:2">
+            <div class="mchart" id="mchart" hidden></div>
+            <div class="pf-list" id="pfList"></div>
+          </div>
+        </div>
+        <div class="lab rise hide-m" style="--i:6" data-t="prof_note">시트 Profile 탭과 실시간 연동</div>
+      </div>
+    </section>
+
+    <!-- 8 기술 -->
+    <section class="slide" id="s6" data-name="TECH">
+      <div class="wrap">
+        <div class="rt"><h2 class="h2 rise" style="--i:0">Tech<br>Stack<span class="lime">.</span><span class="sub" data-t="tech_sub">구글 클라우드 위에서 안정적으로</span></h2><div class="lab rise hide-m" style="--i:1;text-align:right;line-height:1.8" id="techMeta"></div></div>
+        <div class="techs" id="techs"></div>
+        <div class="lab rise hide-m" style="--i:6" data-t="tech_note">막대 길이 = 계층별 활용 도구 수</div>
+      </div>
+    </section>
+
+    <!-- 9 문의 -->
+    <section class="slide" id="s7" data-name="CONTACT">
+      <div class="wrap">
+        <div class="lab tag rise" style="--i:0"><span class="dot"></span>06 · CONTACT</div>
+        <div class="foot-grid">
+          <div class="video rise" style="--i:1" id="promo-video-container"><button class="play" id="playBtn" type="button" aria-label="홍보영상 재생">▶</button><span class="lab">PROMO FILM</span></div>
+          <div class="rise" style="--i:2">
+            <div class="logo" style="font-size:28px">JINHYUN<i>//</i>AI</div>
+            <p class="body-lg" style="margin-top:14px" id="footer-desc">공감과 데이터가 만나는 지점에서 AI 기반 기술로 사회복지의 미래를 설계합니다.</p>
+            <div class="type" id="type"></div>
+            <div class="row"><button class="btn lime" type="button" onclick="openContactModal(event)"><span data-t="btn_inquiry">문의하기</span> →</button><button class="btn" type="button" onclick="toggleChat()" data-t="hero_cta2">AI 비서에게 묻기</button></div>
+            <div class="copy-r" id="footer-copyright" style="position:relative">© JINHYUN.AI<button class="adm" type="button" onclick="openAdminModal()">ADMIN</button></div>
+          </div>
+        </div>
+        <div class="wordmark" aria-hidden="true">JINHYUN//AI</div>
+      </div>
+    </section>
+  </main>
+
+  <div class="sweep" id="sweep"></div>
+  <nav class="pager" id="pager" aria-label="섹션 이동"></nav>
+  <div class="count"><b id="cur">01</b> / <span id="total">09</span> · <span id="curname">HERO</span></div>
+
+  <div class="veil" id="veil"></div>
+  <aside class="sheet" id="sheet" aria-hidden="true">
+    <button class="btn sm x" id="close" type="button">닫기 ✕</button>
+    <span class="lab" id="sCat" style="color:var(--lime)"></span>
+    <h3 id="sTitle"></h3>
+    <span class="chip on" id="sGoal"></span>
+    <dl>
+      <div><dt class="lab">Functions</dt><dd id="sFn"></dd></div>
+      <div><dt class="lab">Effects</dt><dd id="sEf"></dd></div>
+    </dl>
+    <span class="lab">Detail</span>
+    <p id="sDe"></p>
+    <a class="btn lime" id="sDemo" target="_blank" rel="noopener" style="width:100%;justify-content:center;margin-top:18px">시연영상 보기 →</a>
+  </aside>
+</div>
 
     <!-- Contact Modal -->
     <div id="contact-modal" class="modal-overlay">
@@ -508,6 +534,7 @@
             </div>
         </div>
     </div>
+
 
     <script src="gas-bridge.js"></script>
     <script src="app.js"></script>
