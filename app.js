@@ -21,7 +21,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
 
   /* ---------- 언어 ---------- */
   var EN = {
-    nav_home: 'Home', nav_sol: 'Solutions', nav_prof: 'Profile & Tech', nav_contact: 'Contact', btn_inquiry: 'Contact',
+    nav_home: 'Home', nav_sol: 'Solutions', nav_prof: 'Profile & Tech', nav_hum: 'Humanism', btn_inquiry: 'Contact',
     prof_h: '25 years in the field,<br>proven record<span class="lime">.</span>', st_prob: 'Problem', st_sol: 'Solution', st_res: 'Result', st_sys: 'Systems', st_prof: 'Profile', st_tech: 'Tech',
     sys_h: 'Systems I developed<span class="lime">.</span>', tech_h: 'Running on Google<br>tech stack<span class="lime">.</span>',
     greet: "Hello, I'm <b>Jang Jin-hyun</b>, the coding secretary general.", greet2: 'What happens when a 25-year social welfare practitioner writes the code himself? Here is a realistic alternative, shown in working systems.',
@@ -52,7 +52,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   }
   function setLang(l) {
     currentLang = l; try { localStorage.setItem('site_lang', l); } catch (e) { }
-    applyStatic(); loadAll(); renderResult(); renderPortfolio();
+    applyStatic(); applyHum(); loadAll(); renderResult(); renderPortfolio();
   }
   $$('.lg').forEach(function (b) { b.addEventListener('click', function () { setLang(b.dataset.lang || (b.id === 'lang-en' ? 'en' : 'kr')); }); });
 
@@ -172,6 +172,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     pfRender(pfSel);
     renderResult(); renderHeroStats(); runCounts();
   }
+  function playBars() { mch.classList.remove('go'); void mch.offsetWidth; mch.classList.add('go'); }
   function pfRender(k) {
     pfSel = k; $$('.chip', pfT).forEach(function (b) { b.classList.toggle('on', +b.dataset.k === k); });
     var cats = PCATS[k]; pfL.scrollTop = 0;
@@ -188,7 +189,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
       var mx = Math.max.apply(null, keys.map(function (q) { return cnt[q]; })) || 1, cy = new Date().getFullYear() * 100 + 1;
       mch.innerHTML = '<span class="cap">' + (isKr() ? '월별 신규 개발' : 'NEW PLATFORMS PER MONTH') + ' · ' + rows.length + (isKr() ? '건 / ' + keys.length + '개월' : ' / ' + keys.length + ' mo') + '</span>' +
         keys.map(function (q, i) { return '<i class="' + (q >= cy ? 'on' : '') + '" style="--h:' + Math.max(cnt[q] ? 18 : 4, cnt[q] / mx * 100) + ';--k:' + i + '" title="' + Math.floor(q / 100) + '.' + String(q % 100).padStart(2, '0') + ' · ' + cnt[q] + '"></i>'; }).join('');
-      mch.hidden = false;
+      mch.hidden = false; playBars();
     } else { mch.hidden = true; }
     var cy2 = new Date().getFullYear() * 100 + 1;
     pfL.innerHTML = rows.map(function (r, i) { return '<div class="pf-item' + (pkey(r.p) >= cy2 ? ' new' : '') + '" style="--i:' + Math.min(i, 14) + '"><span class="pp">' + esc(r.p).replace('~', '~<br class="pbr">') + '</span><span class="tt">' + esc(r.t) + '</span><span class="oo">' + esc(r.o) + '</span></div>'; }).join('');
@@ -227,7 +228,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   }
   function renderFooter(d) {
     if (!d) return;
-    if (d.description) $('#footer-desc').textContent = d.description;
+    var ml = $('#footerMail'); if (ml && d.email) ml.innerHTML = '<span class="hv-ml">EMAIL</span><a href="mailto:' + esc(d.email) + '">' + esc(d.email) + '</a>';
     if (d.copyright) { var c = $('#footer-copyright'); if (c && c.firstChild) c.firstChild.textContent = String(d.copyright).replace(/<[^>]*>/g, '') + ' '; }
   }
   $('#playBtn').addEventListener('click', function () {
@@ -293,7 +294,36 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     } catch (e) { }
   }
   setPromo(PROMO_FALLBACK);
-  cachedApi('getPromoVideoUrl', '-', function (u) { setPromo(u); }).catch(warn);
+  var HUM = {
+    kr: { t: '기술은 차갑게,\n현장은 따뜻하게.', d: '코딩하는 사무국장 장진현 | Human-in-the-Loop | Digital Humanism | 기술은 도구, 주인공은 사람 | 서류는 코드에게, 사람은 사람에게\n사람이 다시, 사람에게 집중하는 시간.' },
+    en: { t: 'Technology stays cool,\nthe field stays warm.', d: 'The Coding Secretary General, Jang Jin-hyun | Human-in-the-Loop | Digital Humanism | Technology is the tool, people are the point | Paperwork to code, people to people\nTime for people to focus on people again.' }
+  };
+  var humSheet = { t: '', d: '' }, typeT = 0, typeText = '';
+  function typeLoop(list) {
+    clearTimeout(typeT); var el = $('#humTyped'); if (!el) return;
+    if (!list || !list.length) { el.textContent = ''; return; }
+    typeText = list;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { el.textContent = list[0]; return; }
+    var k = 0, i = 0, del = false;
+    (function tick() {
+      if (typeText !== list) return;
+      var text = list[k];
+      el.textContent = text.slice(0, i);
+      if (!del && i >= text.length) { del = true; typeT = setTimeout(tick, 3200); return; }
+      if (del && i <= 0) { del = false; k = (k + 1) % list.length; typeT = setTimeout(tick, 650); return; }
+      i += del ? -1 : 1; typeT = setTimeout(tick, del ? 26 : 90);
+    })();
+  }
+  function applyHum() {
+    var L = isKr() ? 'kr' : 'en', t = (isKr() && humSheet.t) || HUM[L].t, d = (isKr() && humSheet.d) || HUM[L].d;
+    var tl = t.split(/\n/).map(function (x) { return esc(x); }).join('<br>'); tl = tl.replace(/\.$/, '<span class="lime">.</span>');
+    var h = $('#humT'); if (h) h.innerHTML = tl;
+    var ls = d.split(/\n/).filter(function (x) { return x.trim(); }), box = $('#humD');
+    if (box) { box.innerHTML = '<p class="tp"><span id="humTyped"></span><i class="caret"></i></p>'; typeLoop((ls[0] || '').split('|').map(function (x) { return x.trim(); }).filter(Boolean)); }
+  }
+  applyHum();
+  cachedApi('getPromoData', '-', function (o) { o = o || {}; setPromo(o.url); humSheet = { t: o.title || '', d: o.desc || '' }; applyHum(); }).catch(function (e) { warn(e); api('getPromoVideoUrl').then(function (u) { setPromo(u); }).catch(warn); });
 
   /* ---------- 히어로 배경: 점·점선 네트워크 (라임 + 앰버 소량, 마우스 반응) ---------- */
   function initNet() {
@@ -370,13 +400,58 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   }
   var net = initNet();
 
+  /* 휴머니즘 화면 하단: 홈의 점·선을 물결 모양의 한 줄 사슬로 (라임 + 앰버 소량) */
+  function initArt() {
+    var cv = $('#net2'); if (!cv || !cv.getContext) return { on: function () { } };
+    var ctx = cv.getContext('2d'), W = 0, H = 0, pts = [], raf = 0, running = false;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function size() {
+      var r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2); if (!r.width || !r.height) return;
+      W = r.width; H = r.height; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var n = Math.max(12, Math.round(W / 44)); pts = [];
+      for (var i = 0; i < n; i++) pts.push({ fx: i / (n - 1), ph: Math.random() * 6.283, r: 1.2 + Math.random() * 1.7, warm: Math.random() < .16, amp: .55 + Math.random() * .45, off: (Math.random() - .5) * .55 });
+      draw(0);
+    }
+    function pos(p, t) { return [p.fx * W, H * .5 + Math.sin(t / 1500 + p.fx * 7) * H * .2 * p.amp + Math.sin(t / 950 + p.ph) * H * .05 + p.off * H * .36]; }
+    function draw(t) {
+      ctx.clearRect(0, 0, W, H);
+      var g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(195,244,0,0)'); g.addColorStop(1, 'rgba(195,244,0,.07)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      var P = pts.map(function (p) { return pos(p, t); }), i, a, b, k;
+      ctx.lineWidth = 1;
+      for (i = 0; i < P.length; i++) {
+        for (k = 1; k <= 3; k++) {
+          if (i + k >= P.length) break; a = P[i]; b = P[i + k];
+          var warm = pts[i].warm || pts[i + k].warm, al = (k === 1 ? .55 : k === 2 ? .3 : .14);
+          ctx.strokeStyle = warm ? 'rgba(245,185,122,' + (al * .8) + ')' : 'rgba(195,244,0,' + (al * .75) + ')';
+          ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+        }
+      }
+      for (i = 0; i < P.length; i++) {
+        var p = pts[i], al2 = .55 + .4 * Math.sin(t / 900 + p.ph);
+        ctx.fillStyle = p.warm ? 'rgba(245,185,122,' + (al2 * .3) + ')' : 'rgba(195,244,0,' + (al2 * .25) + ')'; ctx.beginPath(); ctx.arc(P[i][0], P[i][1], p.r * 3.4, 0, 6.283); ctx.fill();
+        ctx.fillStyle = p.warm ? 'rgba(245,185,122,' + al2 + ')' : 'rgba(195,244,0,' + al2 + ')'; ctx.beginPath(); ctx.arc(P[i][0], P[i][1], p.r, 0, 6.283); ctx.fill();
+      }
+    }
+    function step(t) { raf = requestAnimationFrame(step); draw(t); }
+    var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(size, 150); });
+    document.addEventListener('visibilitychange', function () { if (document.hidden && running) { cancelAnimationFrame(raf); raf = 0; } else if (!document.hidden && running && !raf && !reduce) { raf = requestAnimationFrame(step); } });
+    size();
+    return {
+      on: function (flag) {
+        if (flag && !running) { running = true; size(); if (!reduce) raf = requestAnimationFrame(step); else draw(0); }
+        else if (!flag && running) { running = false; cancelAnimationFrame(raf); raf = 0; }
+      }
+    };
+  }
+  var art = initArt();
+
   /* ---------- 덱: 이동·활성화 ---------- */
   var pg = $('#pager'), curIdx = 0, sweep = $('#sweep');
   slides.forEach(function (s, i) { var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', s.dataset.name); b.onclick = function () { go(i); }; pg.appendChild(b); });
   function go(i) { closeMenu(); slides[i].scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   $$('[data-go]').forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); var t = +a.dataset.go; if (a.dataset.panel != null) { if (t === curIdx) setPanel(t, +a.dataset.panel); else { pendingPanel = +a.dataset.panel; go(t); } } else go(t); }); });
   var QMAP = [0, 1, 2, 3];
-  var NAMES = ['HOME', 'SOLUTIONS', 'PROFILE', 'CONTACT'];
+  var NAMES = ['HOME', 'SOLUTIONS', 'PROFILE', 'HUMANISM'];
   var pendingPanel = null;
   slides.forEach(function (s) { s._panels = $$('.panel', s); s._p = 0; });
   function label(i) { var s = slides[i], n = s._panels.length; $('#cur').textContent = NAMES[i] || ''; $('#curname').textContent = n ? ((s._p + 1) + '/' + n) : ''; }
@@ -391,13 +466,14 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     var pos = $('.ch-pos', s); if (pos) pos.textContent = (p + 1) + '/' + ps.length;
     if (si === curIdx) {
       pn.classList.add('in'); frame.classList.toggle('light', th === 'light'); label(si); runCounts();
+      if (pn.contains(mch) && !mch.hidden) playBars();
       if (typeof prog === 'function') prog();
       if (typeof logFootprint === 'function' && old !== pn) logFootprint(NAMES[si], '단계 이동', $('.ch-steps button.on span', s) ? $('.ch-steps button.on span', s).textContent : '');
     }
   }
   $$('.chapter').forEach(function (ch) { var s = ch.closest('.slide'), si = slides.indexOf(s); $$('[data-step]', ch).forEach(function (b) { b.addEventListener('click', function () { setPanel(si, +b.dataset.step); }); }); });
   function activate(i, first) {
-    var prev = curIdx; curIdx = i; markQ(i); net.on(i === 0);
+    var prev = curIdx; curIdx = i; markQ(i); net.on(i === 0); art.on(i === 3);
     $$('button', pg).forEach(function (b, k) { b.classList.toggle('on', k === i); });
     slides.forEach(function (s, k) { if (k !== i) { s.classList.remove('in'); (s._panels || []).forEach(function (pn) { pn.classList.remove('in'); $$('.card.ready', pn).forEach(function (c) { c.classList.remove('ready'); }); }); } });
     var s = slides[i];
@@ -429,11 +505,6 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   /* 모바일 하단 퀵 메뉴: 현재 위치 표시 */
   function closeMenu() { }
   function markQ(i) { $$('#qmenu button').forEach(function (b) { b.classList.toggle('on', +b.dataset.q === QMAP[i]); }); }
-
-  /* 타이핑 */
-  var PH = { kr: ['> 서류는 코드에게, 사람은 사람에게.', '> 주말에 심고, 월요일에 거둔다.', '> 코딩하는 사회복지사, 장진현'], en: ['> Paperwork to code, people to people.', '> Plant on the weekend, harvest on Monday.', '> The Coding Social Worker, Jang Jin-hyun'] };
-  var pi = 0, ci = 0, del = false, ty = $('#type');
-  (function tick() { var arr = PH[isKr() ? 'kr' : 'en'], p = arr[pi % arr.length]; ty.textContent = p.slice(0, ci); if (!del && ci >= p.length) { del = true; return setTimeout(tick, 1800); } if (del && ci <= 0) { del = false; pi = (pi + 1) % arr.length; } ci += del ? -1 : 1; setTimeout(tick, del ? 25 : 55); })();
 
   /* 시작 */
   applyStatic(); loadAll(); loadProfile();

@@ -73,7 +73,7 @@
         <a href="#" data-go="0" data-t="nav_home">홈</a>
         <a href="#" data-go="1" data-t="nav_sol">솔루션</a>
         <a href="#" data-go="2" data-t="nav_prof">이력·기술</a>
-        <a href="#" data-go="3" data-t="nav_contact">문의</a>
+        <a href="#" data-go="3" data-t="nav_hum">휴머니즘</a>
       </nav>
       <span class="lang"><button id="lang-kr" class="lg on" type="button">KR</button> | <button id="lang-en" class="lg" type="button">EN</button></span>
       <button class="btn lime sm" type="button" onclick="openContactModal(event)" data-t="btn_inquiry">문의하기</button>
@@ -262,21 +262,20 @@
       </div>
     </section>
 
-    <!-- 9 문의 -->
-    <section class="slide" id="sCon" data-name="CONTACT">
-      <div class="wrap">
-        <div class="lab tag rise" style="--i:0"><span class="dot"></span>CONTACT</div>
-        <div class="foot-grid">
-          <div class="video rise" style="--i:1" id="promo-video-container"><button class="play" id="playBtn" type="button" aria-label="발표 영상 재생">▶</button><span class="lab" id="promoLab">PROMO FILM</span></div>
-          <div class="rise" style="--i:2">
-            <div class="logo" style="font-size:28px">JINHYUN<i>//</i>AI</div>
-            <p class="body-lg" style="margin-top:14px" id="footer-desc">공감과 데이터가 만나는 지점에서 AI 기반 기술로 사회복지의 미래를 설계합니다.</p>
-            <div class="type" id="type"></div>
-            <div class="row"><button class="btn lime" type="button" onclick="openContactModal(event)"><span data-t="btn_inquiry">문의하기</span> →</button><button class="btn" type="button" onclick="toggleChat()" data-t="hero_cta2">AI 비서에게 묻기</button></div>
-            <div class="copy-r" id="footer-copyright" style="position:relative">© JINHYUN.AI<button class="adm" type="button" onclick="openAdminModal()">ADMIN</button></div>
-          </div>
+    <!-- 4 휴머니즘: 제목 + 영상 -->
+    <section class="slide" id="sCon" data-name="HUMANISM">
+      <div class="wrap g4">
+        <div class="chapter rise" style="--i:0"><span class="ch-name">HUMANISM</span><span class="ch-pos">VIDEO</span></div>
+        <div class="ghead">
+          <h2 class="t1 rise" style="--i:1" id="humT">기술은 차갑게,<br>현장은 따뜻하게<span class="lime">.</span></h2>
+          <div class="hd rise" style="--i:2" id="humD"><p class="tp"><span id="humTyped">코딩하는 사무국장 장진현</span><i class="caret"></i></p></div>
         </div>
-        <div class="wordmark" aria-hidden="true">JINHYUN//AI</div>
+        <div class="hv rise" style="--i:3"><div class="video" id="promo-video-container"><button class="play" id="playBtn" type="button" aria-label="발표 영상 재생">▶</button><span class="lab" id="promoLab">PROMO FILM</span></div></div>
+        <div class="hv-art rise" style="--i:4" aria-hidden="true"><canvas id="net2"></canvas></div>
+        <div class="hv-foot rise" style="--i:5">
+          <span class="hv-mail" id="footerMail"></span>
+          <div class="copy-r" id="footer-copyright" style="position:relative">© JINHYUN.AI<button class="adm" type="button" onclick="openAdminModal()">ADMIN</button></div>
+        </div>
       </div>
     </section>
   </main>
@@ -285,7 +284,7 @@
     <button type="button" data-go="0" data-q="0" data-t="nav_home">홈</button>
     <button type="button" data-go="1" data-q="1" data-t="nav_sol">솔루션</button>
     <button type="button" data-go="2" data-q="2" data-t="nav_prof">이력·기술</button>
-    <button type="button" data-go="3" data-q="3" data-t="nav_contact">문의</button>
+    <button type="button" data-go="3" data-q="3" data-t="nav_hum">휴머니즘</button>
   </nav>
 
   <div class="sweep" id="sweep"></div>

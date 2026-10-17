@@ -252,9 +252,10 @@
   .pf-r { display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--line); background: linear-gradient(160deg, rgba(244,244,240,.06), rgba(244,244,240,.015)); backdrop-filter: blur(22px); border-radius: 2px; overflow: hidden; }
   .mchart { display: flex; align-items: flex-end; gap: 3px; height: clamp(70px, 13cqh, 130px); padding: 18px 20px 0; border-bottom: 1px solid var(--line); position: relative; flex: 0 0 auto; }
   .mchart[hidden] { display: none; }
-  .mchart i { flex: 1; min-width: 2px; background: var(--line-2); height: calc(var(--h) * 1%); transform: scaleY(0); transform-origin: bottom; transition: transform .7s var(--spring); transition-delay: calc(var(--k) * 28ms + .3s); }
+  .mchart i { flex: 1; min-width: 2px; background: var(--line-2); height: calc(var(--h) * 1%); transform: scaleY(0); transform-origin: bottom; }
   .mchart i.on { background: var(--lime); }
-  .in .mchart i { transform: scaleY(1); }
+  .mchart.go i { animation: barUp .85s var(--spring) both; animation-delay: calc(var(--k) * 32ms + .1s); }
+  @keyframes barUp { 0% { transform: scaleY(0); opacity: .2; } 60% { opacity: 1; } 100% { transform: scaleY(1); opacity: 1; } }
   .mchart .cap { position: absolute; left: 20px; top: 8px; font: 700 10px/1 var(--f-mono); letter-spacing: .1em; color: var(--fg-40); }
   .pf-list { overflow-y: auto; min-height: 0; flex: 1; scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
   .pf-item { display: grid; grid-template-columns: clamp(96px, 9cqw, 150px) 1fr auto; gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--line); align-items: baseline; transition: background .2s; }
@@ -753,3 +754,51 @@
 
   .video .lab { color: #f4f4f0; text-shadow: 0 1px 8px rgba(0,0,0,.7); font-size: 13px; letter-spacing: .04em; max-width: calc(100% - 28px); line-height: 1.4; }
   .video { background-color: #000; }
+
+  /* ===== 휴머니즘(영상) 화면 ===== */
+  .hd { justify-self: end; max-width: 46ch; text-align: left; }
+  .hd p { font-size: clamp(15px, 1.2cqw, 20px); line-height: 1.55; color: var(--fg-60); margin: 0 0 10px; word-break: keep-all; }
+  .hd b { display: block; font: 900 clamp(18px, 1.7cqw, 30px)/1.3 var(--f-body); letter-spacing: -.03em; color: var(--fg); word-break: keep-all; }
+  .hd b::before { content: ''; display: block; width: 36px; height: 3px; margin-bottom: 12px; background: var(--lime); box-shadow: 0 0 14px rgba(195,244,0,.6); }
+  .hv { display: grid; place-items: center; min-height: 0; }
+  .hv .video { height: 100%; width: auto; max-width: 100%; aspect-ratio: 16 / 9; }
+  .hv-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; min-height: 22px; }
+  .hv-mail { font-size: 14px; color: var(--fg-60); }
+  .hv-mail a { color: var(--lime); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+  .hv-foot .copy-r { margin: 0; padding-right: 64px; }
+  @container (max-width: 860px) {
+    .hd { justify-self: start; max-width: none; }
+    .hd p { font-size: 13.5px; margin-bottom: 8px; }
+    .hd b { font-size: 18px; }
+    .hv .video { width: 100%; height: auto; }
+    .hv { align-items: start; }
+    .hv-foot { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .hv-foot .copy-r { padding-right: 56px; }
+  }
+
+  /* 휴머니즘 화면 보정 */
+  #sCon .chapter { min-height: 48px; padding-top: 6px; }
+  #sCon .video .lab { left: 14px; bottom: 12px; right: 14px; }
+  @container (max-width: 860px) {
+    #sCon .chapter { min-height: 0; padding-top: 0; }
+    #sCon .video .lab { font-size: 11px; line-height: 1.35; bottom: 8px; left: 10px; right: 10px; }
+    .hv { align-items: center; }
+  }
+
+  /* 타이핑 줄 + 이메일 라벨 */
+  .hd .tp { min-height: 1.6em; display: block; font-weight: 800; color: var(--fg); }
+  .hd .caret { display: inline-block; width: 2px; height: 1em; margin-left: 3px; vertical-align: -.12em; background: var(--lime); animation: pulse 1s steps(2) infinite; }
+  .hv-ml { display: inline-block; margin-right: 10px; padding: 3px 7px; font: 800 11px/1 var(--f-mono); letter-spacing: .12em; color: #111; background: var(--lime); }
+  .hv-mail a { text-decoration: none; color: var(--fg); font-weight: 700; }
+  .hv-mail a:hover { color: var(--lime); }
+  @media (prefers-reduced-motion: reduce) { .hd .caret { animation: none; } }
+
+  /* 휴머니즘: 강조 줄 삭제 -> 영상 위로, 하단 그래픽 */
+  #sCon .wrap.g4 { grid-template-rows: auto auto minmax(0, 1fr) clamp(84px, 18cqh, 200px) auto; }
+  #sCon .hv { align-items: start; justify-items: center; }
+  .hv-art { position: relative; min-height: 0; margin: 0 -2px; }
+  .hv-art canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  @container (max-width: 860px) {
+    #sCon .wrap.g4 { grid-template-rows: auto auto auto minmax(110px, 1fr) auto; }
+    #sCon .hv { align-items: start; }
+  }
