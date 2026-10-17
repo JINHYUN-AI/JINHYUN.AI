@@ -274,25 +274,57 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   function warn(e) { if (window.console) console.warn('[JINHYUN.AI]', e && e.message ? e.message : e); }
   var profLoaded = false;
   function loadProfile() { cachedApi('getProfileData', isKr() ? 'kr' : 'en', function (d) { state.profile = d || { items: [], copyright: [] }; profLoaded = true; renderPortfolio(); }).catch(warn); }
-  api('getPromoVideoUrl').then(function (u) { state.promo = u || ''; if (!u) $('#playBtn').style.display = 'none'; }).catch(warn);
+  /* 문의 화면 영상: 구글 시트 '에이전트 영상' 탭 A2의 유튜브 주소를 사용합니다(시트만 바꾸면 즉시 반영, 배포 불필요).
+     시트 값이 비었거나 유튜브 주소가 아닐 때만 아래 기본 영상(2026 춘계학술대회 발표)을 보여 줍니다. 영상 아래 제목은 유튜브에서 자동으로 가져옵니다. */
+  var PROMO_FALLBACK = 'https://youtu.be/w4rMsyA4v_k';
+  function ytId(u) { var m = String(u || '').match(/(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/)([\w-]{11})/); return m ? m[1] : ''; }
+  function setPromo(u) {
+    var id = ytId(u) ? u : PROMO_FALLBACK; id = ytId(id);
+    state.promo = 'https://youtu.be/' + id;
+    var box = $('#promo-video-container'), lb = $('#promoLab'), pb = $('#playBtn');
+    if (pb) pb.style.display = '';
+    box.style.backgroundImage = 'linear-gradient(rgba(17,19,24,.35), rgba(17,19,24,.55)), url(https://img.youtube.com/vi/' + id + '/hqdefault.jpg)';
+    box.style.backgroundSize = 'cover'; box.style.backgroundPosition = 'center';
+    if (lb) lb.textContent = 'PROMO FILM';
+    try {
+      var xhr = new XMLHttpRequest(); xhr.open('GET', 'https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent('https://youtu.be/' + id)); xhr.timeout = 6000;
+      xhr.onload = function () { try { var j = JSON.parse(xhr.responseText); if (lb && j.title && state.promo.indexOf(id) > -1) lb.textContent = j.title + (j.author_name ? ' · ' + j.author_name : ''); } catch (e) { } };
+      xhr.send();
+    } catch (e) { }
+  }
+  setPromo(PROMO_FALLBACK);
+  cachedApi('getPromoVideoUrl', '-', function (u) { setPromo(u); }).catch(warn);
 
   /* ---------- 히어로 배경: 점·점선 네트워크 (라임 + 앰버 소량, 마우스 반응) ---------- */
   function initNet() {
     var cv = $('#net'); if (!cv || !cv.getContext) return { on: function () { } };
-    var ctx = cv.getContext('2d'), W = 0, H = 0, pts = [], raf = 0, running = false, mx = -999, my = -999, last = 0;
+    var ctx = cv.getContext('2d'), W = 0, H = 0, pts = [], raf = 0, running = false, mx = -999, my = -999, last = 0, zone = null, zt = 0;
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    function mk() { var a = Math.random() * 6.283, s = .12 + Math.random() * .3; return { x: Math.random() * W, y: Math.random() * H, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 1 + Math.random() * 1.7, warm: Math.random() < .14, ph: Math.random() * 6.283 }; }
+    function calcZone() {
+      zone = null; if (W > 860) return;
+      var mid = $('.home-mid'), foot = $('.home-foot'); if (!mid || !foot) return;
+      var cr = cv.getBoundingClientRect(), a = mid.getBoundingClientRect(), b = foot.getBoundingClientRect();
+      var y0 = a.bottom - cr.top + 14, y1 = b.top - cr.top - 14; if (y1 - y0 > 50) zone = { y0: y0, y1: y1 };
+    }
+    function mk() { var a = Math.random() * 6.283, s = .12 + Math.random() * .3, inZ = zone && Math.random() < .78; return { free: !inZ, x: Math.random() * W, y: inZ ? zone.y0 + Math.random() * (zone.y1 - zone.y0) : Math.random() * H, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 1 + Math.random() * 1.7, warm: Math.random() < .14, ph: Math.random() * 6.283 }; }
     function size() {
       var r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2); if (!r.width || !r.height) return;
       W = r.width; H = r.height; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      calcZone();
       var n = Math.round(Math.min(100, Math.max(26, W * H / 15000)));
-      while (pts.length < n) pts.push(mk()); pts.length = n;
+      if (zone) n += Math.round(W * (zone.y1 - zone.y0) / 7000);
+      pts.length = 0; while (pts.length < n) pts.push(mk());
       pts.forEach(function (p) { if (p.x > W) p.x = Math.random() * W; if (p.y > H) p.y = Math.random() * H; });
       if (!running) draw(0);
     }
     function draw(t) {
       ctx.clearRect(0, 0, W, H);
       var L = Math.min(190, Math.max(110, W / 8.5)), i, j, p, q, dx, dy, d, a;
+      if (zone) {
+        var cy = (zone.y0 + zone.y1) / 2, rr = Math.max(W * .62, (zone.y1 - zone.y0) * .8), g = ctx.createRadialGradient(W / 2, cy, 0, W / 2, cy, rr);
+        g.addColorStop(0, 'rgba(195,244,0,.10)'); g.addColorStop(1, 'rgba(195,244,0,0)'); ctx.fillStyle = g; ctx.fillRect(0, zone.y0 - rr, W, rr * 2 + (zone.y1 - zone.y0));
+        L = Math.min(L, 120);
+      }
       ctx.lineWidth = 1;
       for (i = 0; i < pts.length; i++) {
         p = pts[i];
@@ -311,10 +343,12 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     }
     function step(t) {
       raf = requestAnimationFrame(step); var k = Math.min(40, t - last) / 16.7; last = t;
+      if ((zt = (zt + 1) % 45) === 0 && W <= 860) { var oz = zone; calcZone(); if (zone && !oz) { pts.length = 0; size(); } }
       for (var i = 0; i < pts.length; i++) {
         var p = pts[i], dx = p.x - mx, dy = p.y - my, d = Math.sqrt(dx * dx + dy * dy);
         if (d < 120 && d > 0) { p.x += dx / d * .6 * k; p.y += dy / d * .6 * k; }
         p.x += p.vx * k; p.y += p.vy * k;
+        if (zone && !p.free) { var ty = p.y < zone.y0 ? zone.y0 : (p.y > zone.y1 ? zone.y1 : p.y); p.vy += (ty - p.y) * .0009 * k; p.vy *= .999; if (p.x < -10) p.x = W + 10; else if (p.x > W + 10) p.x = -10; continue; }
         if (p.x < -20) p.x = W + 20; else if (p.x > W + 20) p.x = -20; if (p.y < -20) p.y = H + 20; else if (p.y > H + 20) p.y = -20;
       }
       draw(t);

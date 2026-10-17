@@ -742,3 +742,14 @@
   @container (min-width: 861px) {
     .chips .chip { font-family: var(--f-body); font-weight: 800; letter-spacing: 0; word-spacing: .08em; font-size: 15px; padding: 12px 16px; }
   }
+
+  /* 홈 버튼: PC는 아래 철학 영역, 모바일은 설명 문장 바로 아래 */
+  .home-cta { display: none; }
+  @container (max-width: 860px) {
+    .home-cta { display: block; margin-top: 4px; }
+    .home-ph .row { display: none; }
+    .home-ph p { margin-bottom: 0; }
+  }
+
+  .video .lab { color: #f4f4f0; text-shadow: 0 1px 8px rgba(0,0,0,.7); font-size: 13px; letter-spacing: .04em; max-width: calc(100% - 28px); line-height: 1.4; }
+  .video { background-color: #000; }
