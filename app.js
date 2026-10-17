@@ -21,7 +21,10 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
 
   /* ---------- 언어 ---------- */
   var EN = {
-    nav_phil: 'Philosophy', label_phil: '', nav_sol: 'Solutions', nav_prof: 'Profile', nav_tech: 'Tech', nav_contact: 'Contact', btn_inquiry: 'Contact',
+    nav_home: 'Home', nav_sol: 'Solutions', nav_prof: 'Profile & Tech', nav_contact: 'Contact', btn_inquiry: 'Contact',
+    prof_h: '25 years in the field,<br>proven record<span class="lime">.</span>', st_prob: 'Problem', st_sol: 'Solution', st_res: 'Result', st_sys: 'Systems', st_prof: 'Profile', st_tech: 'Tech',
+    sys_h: 'Systems I built<br><span id="sysCount">24</span><span class="lime">.</span>', tech_h: 'Running on Google<br>tech stack<span class="lime">.</span>',
+    greet: "Hello, I'm <b>Jang Jin-hyun</b>, the coding secretary general.", greet2: 'What happens when a 25-year social welfare practitioner writes the code himself? Here is a realistic alternative, shown in working systems.',
     hero_tag: 'SOCIAL WELFARE × AI · SECRETARY GENERAL, LIGHTHOUSE HOUSE',
     hero_h: '<span class="ko">Weekend code</span><br><span class="ko">rewrites welfare\'s</span><br><span class="ko">Monday<em>.</em></span>',
     hero_sub: 'AI-powered admin automation, built by a practitioner who knows the field. We give the time spent on paperwork back to people.',
@@ -33,8 +36,8 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     log1: 'Official letter received → schedule auto-registered', log2: 'Counseling memo → draft record generated', log3: 'Every day 18:00 → daily report sent automatically', sample: 'sample',
     res_h: 'Time returned<br>to people<span class="lime">.</span>', res_p: 'Conversation moves into the space paperwork leaves. Before any number changes, the faces in the field do.',
     concept: 'The chart below is a concept diagram', cross: 'Crossover · the moment time comes back', g_hi1: 'Counseling', g_lo1: 'Admin time', before: 'Before', after: 'After',
-    sol_sub: 'Systems I built · click a card for details', prof_label: 'Profile & expertise', prof_note: 'Live-linked to the Profile sheet',
-    tech_sub: 'Reliable on Google Cloud', tech_note: 'Bar length = number of tools per layer'
+    q_home: 'Home', q_phil: 'Story', q_sol: 'Solutions', q_prof: 'Profile', q_tech: 'Tech', q_contact: 'Contact', q_ai: 'AI Chat', sol_sub: '4/4 · Systems I built · click a card for details', prof_label: 'Profile & expertise', prof_note: 'Live-linked to the Profile sheet',
+    tech_sub: '2/2 · Reliable on Google Cloud', tech_note: 'Bar length = number of tools per layer'
   };
   $$('[data-t]').forEach(function (el) { el.dataset.kr = el.innerHTML; });
   function applyStatic() {
@@ -63,10 +66,8 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   function runCounts() { if (slides[curIdx]) $$('.cnt', slides[curIdx]).forEach(countUp); }
 
   /* ---------- 상단: 시계·티커 ---------- */
-  function clock() { var d = new Date(), p = function (n) { return String(n).padStart(2, '0'); }; $('#clock').textContent = p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + ' KST'; }
-  clock(); setInterval(clock, 1000);
   function renderTicker() {
-    var parts = ['SOCIAL WELFARE × AI'].concat(state.banners.map(function (b) { return String(b.title || '').replace(/<br\s*\/?>/gi, ' '); }).filter(Boolean)).concat(['JINHYUN.AI']);
+    var parts = [isKr() ? '주말의 코드가, 복지의 월요일을 바꿉니다' : "Weekend code rewrites welfare's Monday", 'SOCIAL WELFARE × AI'].concat(state.banners.map(function (b) { return String(b.title || '').replace(/<br\s*\/?>/gi, ' '); }).filter(Boolean)).concat(['JINHYUN.AI']);
     var line = parts.join('  //  ') + '  //  ';
     var h = esc(line).replace(/\/\//g, '<b>//</b>');
     $('#tick').innerHTML = '<span>' + h + h + '</span><span>' + h + h + '</span>';
@@ -80,26 +81,20 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   function oneLine(t) { return String(t || '').split(/\n+/).map(function (x) { return x.trim(); }).filter(Boolean).join(' '); }
   function renderAbout() {
     var w = state.week; if (!w.length) return;
-    var daysEl = $('#days'), barsEl = $('#bars'); daysEl.innerHTML = ''; barsEl.innerHTML = '';
-    var maxLen = Math.max.apply(null, w.map(function (x) { return clean(x.slogan).length; })) || 1;
+    var daysEl = $('#days'); daysEl.innerHTML = '';
     for (var i = 0; i < 7; i++) {
       (function (i) {
         var row = w.filter(function (x) { return x.day === i + 1; })[0]; if (!row) return;
         var b = document.createElement('button'); b.type = 'button'; b.className = 'day' + (i === todayIdx ? ' today' : ''); b.textContent = DN[i]; b.onclick = function () { setDay(i); }; daysEl.appendChild(b);
-        var bar = document.createElement('div'); bar.className = 'bar'; bar.style.setProperty('--i', i);
-        var len = clean(row.slogan).length; bar.innerHTML = '<i style="--h:' + Math.round(len / maxLen * 100) + '%"><b>' + len + '</b></i><span>' + DN[i] + '</span>';
-        bar.onclick = function () { setDay(i); }; barsEl.appendChild(bar);
       })(i);
     }
     setDay(todayIdx);
   }
   function setDay(i) {
-    var w = state.week, row = w.filter(function (x) { return x.day === i + 1; })[0]; if (!row) return; curDay = i;
-    var nx = w.filter(function (x) { return x.day === ((i + 1) % 7) + 1; })[0];
-    $$('.day').forEach(function (b, k) { b.classList.toggle('on', b.textContent === DN[i]); });
-    $$('.bar').forEach(function (b) { b.classList.toggle('on', $('span', b).textContent === DN[i]); });
+    var row = state.week.filter(function (x) { return x.day === i + 1; })[0]; if (!row) return; curDay = i;
+    $$('.day').forEach(function (b) { b.classList.toggle('on', b.textContent === DN[i]); });
     $('#quote').textContent = clean(row.slogan); $('#philo').textContent = oneLine(row.philosophy);
-    $('#sigtxt').textContent = clean(row.branding) || 'JINHYUN.AI'; $('#ghost').textContent = DN[i]; $('#next').textContent = nx ? clean(nx.slogan) : '';
+    $('#sigtxt').textContent = clean(row.branding) || 'JINHYUN.AI';
   }
 
   /* ---------- 솔루션 카드 ---------- */
@@ -110,6 +105,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     return { p: m ? +m[1] : 0, pn: String(r.category || '').replace(/^Part\s*\d\s*\.?\s*/i, ''), n: r.name || '', g: r.goal || '', f: r.functions || '', e: r.effects || '', d: d, u: (r.demoUrl && String(r.demoUrl).trim().indexOf('http') === 0) ? String(r.demoUrl).trim() : '' };
   }
   function renderFilters() {
+    var scn = $('#sysCount'); if (scn) scn.textContent = state.systems.length;
     var parts = []; state.systems.forEach(function (s) { if (parts.map(function (x) { return x[0]; }).indexOf(s.p) < 0) parts.push([s.p, s.pn]); });
     parts.sort(function (a, b) { return a[0] - b[0]; });
     var list = [[0, isKr() ? '전체' : 'All']].concat(parts.map(function (x) { return [x[0], 'P' + x[0] + ' ' + x[1]]; }));
@@ -139,7 +135,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
       b.onclick = function () { openSheet(s); }; sc.appendChild(b);
     });
     var nDemo = state.systems.filter(function (s) { return s.u; }).length;
-    $('#railinfo').textContent = state.systems.length + ' SYSTEMS · ' + nDemo + ' DEMO FILMS / ' + list.length;
+    $('#railinfo').textContent = state.systems.length + ' SYSTEMS · ' + nDemo + ' DEMO FILMS / ' + list.length + (isKr() ? ' · 카드를 눌러 상세 보기' : ' · click a card for details');
     prog();
   }
   function prog() { var w = sc.scrollWidth, c = sc.clientWidth, bar = $('#railprog'); if (w <= c + 2) { bar.style.width = '100%'; bar.style.left = '0'; return; } bar.style.width = (c / w * 100) + '%'; bar.style.left = (sc.scrollLeft / w * 100) + '%'; }
@@ -160,14 +156,17 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   $('#close').onclick = closeSheet; veil.onclick = closeSheet;
 
   /* ---------- 이력/전문성 ---------- */
-  var PTABS = { kr: ['활동', '연구·발표', '개발', '출강', '학력·경력', '저작권'], en: ['Activities', 'Research', 'Development', 'Teaching', 'Career', 'Copyright'] };
+  var PTABS = { kr: ['활동·자문', '연구·발표', '개발', '출강', '학력·경력', '저작권'], en: ['Advisory', 'Research', 'Development', 'Teaching', 'Career', 'Copyright'] };
   var PCATS = [['Activity'], ['Research'], ['Development'], ['Lecture'], ['Education', 'Experience'], null];
   var pfT = $('#pfTabs'), pfL = $('#pfList'), mch = $('#mchart'), pfSel = 0;
   function cat(c) { return state.profile.items.filter(function (r) { return c.indexOf(r.c) >= 0; }); }
   function renderPortfolio() {
     var P = state.profile; if (!P.items.length && !P.copyright.length) return;
     pfT.innerHTML = '';
-    PTABS[isKr() ? 'kr' : 'en'].forEach(function (t, i) { var b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (i === pfSel ? ' on' : ''); b.textContent = t; b.onclick = function () { pfRender(i); }; pfT.appendChild(b); });
+    var avail = PCATS.map(function (c) { return c ? cat(c).length > 0 : P.copyright.length > 0; }), nTab = 0;
+    if (!avail[pfSel]) pfSel = Math.max(0, avail.indexOf(true));
+    PTABS[isKr() ? 'kr' : 'en'].forEach(function (t, i) { if (!avail[i]) return; nTab++; var b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (i === pfSel ? ' on' : ''); b.dataset.k = i; b.textContent = t; b.onclick = function () { pfRender(i); }; pfT.appendChild(b); });
+    pfT.style.setProperty('--n', nTab || 1); pfT.hidden = !nTab;
     var dev = cat(['Development']), act = cat(['Activity']), res = cat(['Research']);
     var devKeys = dev.map(function (r) { return pkey(r.p); }).filter(Boolean).sort(), span = devKeys.length ? (String(devKeys[0]).replace(/(\d{4})(\d{2})/, '$1.$2') + ' ~ ' + String(devKeys[devKeys.length - 1]).replace(/(\d{4})(\d{2})/, '$1.$2')) : '';
     var y = new Date().getFullYear() * 100 + 1, a26 = act.filter(function (r) { return pkey(r.p) >= y; }).length, r26 = res.filter(function (r) { return pkey(r.p) >= y; }).length, yr = new Date().getFullYear();
@@ -182,7 +181,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     renderResult(); renderHeroStats(); runCounts();
   }
   function pfRender(k) {
-    pfSel = k; $$('.chip', pfT).forEach(function (b, i) { b.classList.toggle('on', i === k); });
+    pfSel = k; $$('.chip', pfT).forEach(function (b) { b.classList.toggle('on', +b.dataset.k === k); });
     var cats = PCATS[k]; pfL.scrollTop = 0;
     if (!cats) {
       mch.hidden = true;
@@ -200,7 +199,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
       mch.hidden = false;
     } else { mch.hidden = true; }
     var cy2 = new Date().getFullYear() * 100 + 1;
-    pfL.innerHTML = rows.map(function (r, i) { return '<div class="pf-item' + (pkey(r.p) >= cy2 ? ' new' : '') + '" style="--i:' + Math.min(i, 14) + '"><span class="pp">' + esc(r.p) + '</span><span class="tt">' + esc(r.t) + '</span><span class="oo">' + esc(r.o) + '</span></div>'; }).join('');
+    pfL.innerHTML = rows.map(function (r, i) { return '<div class="pf-item' + (pkey(r.p) >= cy2 ? ' new' : '') + '" style="--i:' + Math.min(i, 14) + '"><span class="pp">' + esc(r.p).replace('~', '~<br class="pbr">') + '</span><span class="tt">' + esc(r.t) + '</span><span class="oo">' + esc(r.o) + '</span></div>'; }).join('');
   }
 
   /* ---------- 히어로 통계 · 변화(성과) ---------- */
@@ -211,6 +210,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     if (nDemo) items.push([nDemo, isKr() ? '편' : '', isKr() ? '시연영상' : 'Demo films']);
     if (state.profile.copyright.length) items.push([state.profile.copyright.length, isKr() ? '종' : '', isKr() ? 'AI 저작권 등록' : 'AI copyrights registered']);
     var a = mval('행정시간단축률'); if (a) items.push([a.value, a.unit || '%', a.label || (isKr() ? '반복 행정 시간 단축' : 'Admin time saved')]);
+    $('#heroStats').style.setProperty('--sn', items.length || 1);
     $('#heroStats').innerHTML = items.map(function (k) { return '<div class="stat">' + (isNum(k[0]) ? numHtml(k[0], k[1]) : '<b>' + esc(k[0]) + '<i>' + esc(k[1]) + '</i></b>') + '<span>' + esc(k[2]) + '</span></div>'; }).join('');
   }
   function renderResult() {
@@ -262,16 +262,77 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   function loadProfile() { api('getProfileData', isKr() ? 'kr' : 'en').then(function (d) { state.profile = d || { items: [], copyright: [] }; profLoaded = true; renderPortfolio(); }).catch(warn); }
   api('getPromoVideoUrl').then(function (u) { state.promo = u || ''; if (!u) $('#playBtn').style.display = 'none'; }).catch(warn);
 
+  /* ---------- 히어로 배경: 점·점선 네트워크 (라임 + 앰버 소량, 마우스 반응) ---------- */
+  function initNet() {
+    var cv = $('#net'); if (!cv || !cv.getContext) return { on: function () { } };
+    var ctx = cv.getContext('2d'), W = 0, H = 0, pts = [], raf = 0, running = false, mx = -999, my = -999, last = 0;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function mk() { var a = Math.random() * 6.283, s = .12 + Math.random() * .3; return { x: Math.random() * W, y: Math.random() * H, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 1 + Math.random() * 1.7, warm: Math.random() < .14, ph: Math.random() * 6.283 }; }
+    function size() {
+      var r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2); if (!r.width || !r.height) return;
+      W = r.width; H = r.height; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var n = Math.round(Math.min(100, Math.max(26, W * H / 15000)));
+      while (pts.length < n) pts.push(mk()); pts.length = n;
+      pts.forEach(function (p) { if (p.x > W) p.x = Math.random() * W; if (p.y > H) p.y = Math.random() * H; });
+      if (!running) draw(0);
+    }
+    function draw(t) {
+      ctx.clearRect(0, 0, W, H);
+      var L = Math.min(190, Math.max(110, W / 8.5)), i, j, p, q, dx, dy, d, a;
+      ctx.lineWidth = 1;
+      for (i = 0; i < pts.length; i++) {
+        p = pts[i];
+        for (j = i + 1; j < pts.length; j++) {
+          q = pts[j]; dx = p.x - q.x; dy = p.y - q.y; d = Math.sqrt(dx * dx + dy * dy);
+          if (d < L) { a = (1 - d / L); ctx.strokeStyle = (p.warm || q.warm) ? 'rgba(245,185,122,' + (a * .42) + ')' : 'rgba(195,244,0,' + (a * .36) + ')'; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke(); }
+        }
+        dx = p.x - mx; dy = p.y - my; d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 170) { a = (1 - d / 170); ctx.strokeStyle = 'rgba(244,244,240,' + (a * .45) + ')'; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(mx, my); ctx.stroke(); }
+      }
+      for (i = 0; i < pts.length; i++) {
+        p = pts[i]; a = .5 + .4 * Math.sin(t / 900 + p.ph);
+        ctx.fillStyle = p.warm ? 'rgba(245,185,122,' + (a * .3) + ')' : 'rgba(195,244,0,' + (a * .24) + ')'; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 3.2, 0, 6.283); ctx.fill();
+        ctx.fillStyle = p.warm ? 'rgba(245,185,122,' + a + ')' : 'rgba(195,244,0,' + a + ')'; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
+      }
+    }
+    function step(t) {
+      raf = requestAnimationFrame(step); var k = Math.min(40, t - last) / 16.7; last = t;
+      for (var i = 0; i < pts.length; i++) {
+        var p = pts[i], dx = p.x - mx, dy = p.y - my, d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 120 && d > 0) { p.x += dx / d * .6 * k; p.y += dy / d * .6 * k; }
+        p.x += p.vx * k; p.y += p.vy * k;
+        if (p.x < -20) p.x = W + 20; else if (p.x > W + 20) p.x = -20; if (p.y < -20) p.y = H + 20; else if (p.y > H + 20) p.y = -20;
+      }
+      draw(t);
+    }
+    var s0 = $('#s0');
+    if (s0) {
+      s0.addEventListener('pointermove', function (e) { var r = cv.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; }, { passive: true });
+      s0.addEventListener('pointerleave', function () { mx = my = -999; });
+    }
+    var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(size, 150); });
+    document.addEventListener('visibilitychange', function () { if (document.hidden && running) { cancelAnimationFrame(raf); raf = 0; } else if (!document.hidden && running && !raf) { last = performance.now(); raf = requestAnimationFrame(step); } });
+    size();
+    return {
+      on: function (flag) {
+        if (flag && !running) { running = true; if (!reduce) { last = performance.now(); raf = requestAnimationFrame(step); } else draw(0); }
+        else if (!flag && running) { running = false; cancelAnimationFrame(raf); raf = 0; }
+      }
+    };
+  }
+  var net = initNet();
+
   /* ---------- 덱: 이동·활성화 ---------- */
   var pg = $('#pager'), curIdx = 0, sweep = $('#sweep');
-  $('#total').textContent = String(slides.length).padStart(2, '0');
   slides.forEach(function (s, i) { var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', s.dataset.name); b.onclick = function () { go(i); }; pg.appendChild(b); });
   function go(i) { closeMenu(); slides[i].scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   $$('[data-go]').forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); go(+a.dataset.go); }); });
+  var QMAP = [0, 1, 1, 1, 1, 5, 5, 7];
+  var GRP = [['HOME', 0, 0], ['SOLUTIONS', 1, 4], ['SOLUTIONS', 2, 4], ['SOLUTIONS', 3, 4], ['SOLUTIONS', 4, 4], ['PROFILE', 1, 2], ['PROFILE', 2, 2], ['CONTACT', 0, 0]];
   function activate(i, first) {
-    curIdx = i;
+    curIdx = i; markQ(i); net.on(i === 0);
     $$('button', pg).forEach(function (b, k) { b.classList.toggle('on', k === i); });
-    $('#cur').textContent = String(i + 1).padStart(2, '0'); $('#curname').textContent = slides[i].dataset.name;
+    var g = GRP[i] || ['', 0, 0]; $('#cur').textContent = g[0]; $('#curname').textContent = g[2] ? (g[1] + '/' + g[2]) : '';
     frame.classList.toggle('light', slides[i].classList.contains('light'));
     slides.forEach(function (s, k) { if (k !== i && s.classList.contains('in')) { s.classList.remove('in'); $$('.card.ready', s).forEach(function (c) { c.classList.remove('ready'); }); } });
     slides[i].classList.add('in'); runCounts();
@@ -290,10 +351,9 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(Math.max(0, curIdx - 1)); }
   });
 
-  /* 모바일 메뉴 */
-  var menu = $('#menu'), burger = $('#burger');
-  function closeMenu() { menu.classList.remove('open'); burger.classList.remove('on'); }
-  burger.addEventListener('click', function () { var o = menu.classList.toggle('open'); burger.classList.toggle('on', o); });
+  /* 모바일 하단 퀵 메뉴: 현재 위치 표시 */
+  function closeMenu() { }
+  function markQ(i) { $$('#qmenu button').forEach(function (b) { b.classList.toggle('on', +b.dataset.q === QMAP[i]); }); }
 
   /* 타이핑 */
   var PH = { kr: ['> 서류는 코드에게, 사람은 사람에게.', '> 주말에 심고, 월요일에 거둔다.', '> 코딩하는 사회복지사, 장진현'], en: ['> Paperwork to code, people to people.', '> Plant on the weekend, harvest on Monday.', '> The Coding Social Worker, Jang Jin-hyun'] };
@@ -302,7 +362,6 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
 
   /* 시작 */
   applyStatic(); loadAll(); loadProfile();
-  setTimeout(function () { if (typeof showChatWelcomeBubble === 'function') { showChatWelcomeBubble(); startWelcomeMessageRotation(); } }, 3500);
   window.addEventListener('resize', prog);
 })();
 
