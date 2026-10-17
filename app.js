@@ -87,7 +87,6 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     var row = state.week.filter(function (x) { return x.day === i + 1; })[0]; if (!row) return; curDay = i;
     $$('.day').forEach(function (b) { b.classList.toggle('on', b.textContent === DN[i]); });
     $('#quote').textContent = clean(row.slogan); $('#philo').textContent = oneLine(row.philosophy);
-    $('#sigtxt').textContent = clean(row.branding) || 'JINHYUN.AI';
   }
 
   /* ---------- 솔루션 카드 ---------- */
@@ -210,7 +209,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     var a = mval('행정시간단축률'), S = state.systems;
     if (a) { $('#kpiN').dataset.to = a.value; $('#kpiN').textContent = a.value; $('#kpiU').textContent = a.unit || '%'; $('#kpiL').textContent = a.label || (isKr() ? '반복 행정 시간 단축' : 'Admin time saved'); }
     else { $('#kpiN').dataset.to = S.length; $('#kpiN').textContent = S.length; $('#kpiU').textContent = isKr() ? '건' : ''; $('#kpiL').textContent = isKr() ? '직접 만든 자동화 시스템' : 'Automation systems built'; }
-    $('#gUp').textContent = isKr() ? '시간 ↑' : 'time ↑'; $('#gDown').textContent = a ? ('↓ ' + a.value + (a.unit || '%')) : '↓';
+    var up = isKr() ? '시간 ↑' : 'time ↑', dn = a ? ('↓ ' + a.value + (a.unit || '%')) : '↓'; ['gUp', 'gUp2'].forEach(function (k) { var e = $('#' + k); if (e) e.textContent = up; }); ['gDown', 'gDown2'].forEach(function (k) { var e = $('#' + k); if (e) e.textContent = dn; });
     var P = state.profile, dev = cat(['Development']).length, act = cat(['Activity']).length, T = [];
     if (dev) T.push([dev, isKr() ? '건' : '', isKr() ? '개발한 플랫폼' : 'Platforms built']);
     if (P.copyright.length) T.push([P.copyright.length, isKr() ? '종' : '', isKr() ? 'AI 저작권 등록' : 'AI copyrights']);
