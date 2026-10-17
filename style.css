@@ -832,3 +832,20 @@
   .lite .veil { background: rgba(8,9,11,.82); }
   .lite .card.ready { transition: background .2s, color .2s, box-shadow .2s, border-color .2s; }
   .lite .ticker-track { animation-duration: 60s; }
+
+  /* PC 상단 메뉴: 현재 위치 표시 */
+  .nav-links a { position: relative; padding: 6px 0; }
+  .nav-links a::after { content: ''; position: absolute; left: 0; right: 0; bottom: -4px; height: 2px; background: var(--lime); box-shadow: 0 0 10px rgba(195,244,0,.6); transform: scaleX(0); transform-origin: left; transition: transform .3s var(--ease); }
+  .nav-links a.on { color: var(--lime); }
+  .nav-links a.on::after { transform: scaleX(1); }
+  .frame.light .nav-links a.on { color: #111318; }
+  .frame.light .nav-links a::after { background: #111318; box-shadow: none; }
+
+  /* 상세 시트 안 시연영상: 휴머니즘 화면과 같은 영상 칸 */
+  .sheet .sv { width: 100%; margin: 6px 0 14px; background-size: cover; background-position: center; background-color: #000; }
+  .sheet .sv[hidden] { display: none; }
+  .sheet .sv iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .sheet .sv .lab { color: #f4f4f0; text-shadow: 0 1px 8px rgba(0,0,0,.7); position: absolute; left: 12px; bottom: 10px; right: 12px; font-size: 12px; line-height: 1.35; }
+  .sheet .sv.playing .play, .sheet .sv.playing .lab { display: none; }
+  .sdemo { display: inline-block; margin: 0 0 14px; font: 700 12px/1 var(--f-mono); letter-spacing: .08em; color: var(--fg-60); text-decoration: underline; text-underline-offset: 4px; }
+  .sdemo:hover { color: var(--lime); }

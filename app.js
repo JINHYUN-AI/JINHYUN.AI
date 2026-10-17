@@ -140,12 +140,29 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   function openSheet(s) {
     $('#sCat').textContent = 'PART ' + s.p + ' · ' + s.pn; $('#sTitle').textContent = s.n; $('#sGoal').textContent = 'GOAL · ' + s.g;
     $('#sFn').textContent = s.f || '-'; $('#sEf').textContent = s.e || '-'; $('#sDe').textContent = s.d || '-';
-    var dm = $('#sDemo'); dm.textContent = isKr() ? '시연영상 보기 →' : 'Watch demo →';
-    if (s.u) { dm.href = s.u; dm.style.display = 'inline-flex'; dm.onclick = function () { if (typeof logFootprint === 'function') logFootprint('Demo', '영상 시연 클릭', s.n); }; } else { dm.removeAttribute('href'); dm.style.display = 'none'; }
+    var dm = $('#sDemo'), box = $('#sPlayer'), mm = s.u ? /\/d\/([\w-]+)/.exec(s.u) : null; stopPlayer();
+    dm.textContent = isKr() ? '새 탭에서 열기 ↗' : 'Open in new tab ↗';
+    if (s.u) {
+      dm.href = s.u; dm.style.display = 'inline-block';
+      dm.onclick = function () { if (typeof logFootprint === 'function') logFootprint('Demo', '영상 새 탭', s.n); };
+      if (mm) {
+        var id = mm[1];
+        box.hidden = false; box.classList.remove('playing');
+        box.style.backgroundImage = 'linear-gradient(rgba(17,19,24,.35), rgba(17,19,24,.55)), url(https://drive.google.com/thumbnail?id=' + id + '&sz=w800)';
+        box.innerHTML = '<button class="play" type="button" aria-label="' + (isKr() ? '시연영상 재생' : 'Play demo') + '">▶</button><span class="lab"></span>';
+        $('.lab', box).textContent = s.n + (isKr() ? ' · 시연영상' : ' · demo');
+        $('.play', box).onclick = function () {
+          box.classList.add('playing'); box.style.backgroundImage = 'none';
+          box.innerHTML = '<iframe src="https://drive.google.com/file/d/' + id + '/preview" allow="autoplay; fullscreen" allowfullscreen title="' + esc(s.n) + '"></iframe>';
+          if (typeof logFootprint === 'function') logFootprint('Demo', '영상 시연 클릭', s.n);
+        };
+      }
+    } else { dm.removeAttribute('href'); dm.style.display = 'none'; }
     sheet.classList.add('open'); veil.classList.add('open'); deck.classList.add('locked'); sheet.setAttribute('aria-hidden', 'false');
     if (typeof logFootprint === 'function') logFootprint('Systems', '카드 상세보기', s.n);
   }
-  function closeSheet() { sheet.classList.remove('open'); veil.classList.remove('open'); deck.classList.remove('locked'); sheet.setAttribute('aria-hidden', 'true'); }
+  function stopPlayer() { var b = $('#sPlayer'); if (b) { b.innerHTML = ''; b.hidden = true; b.style.backgroundImage = ''; b.classList.remove('playing'); } }
+  function closeSheet() { stopPlayer(); sheet.classList.remove('open'); veil.classList.remove('open'); deck.classList.remove('locked'); sheet.setAttribute('aria-hidden', 'true'); }
   $('#close').onclick = closeSheet; veil.onclick = closeSheet;
 
   /* ---------- 이력/전문성 ---------- */
@@ -506,7 +523,10 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
 
   /* 모바일 하단 퀵 메뉴: 현재 위치 표시 */
   function closeMenu() { }
-  function markQ(i) { $$('#qmenu button').forEach(function (b) { b.classList.toggle('on', +b.dataset.q === QMAP[i]); }); }
+  function markQ(i) {
+    $$('#qmenu button').forEach(function (b) { b.classList.toggle('on', +b.dataset.q === QMAP[i]); });
+    $$('.nav-links a').forEach(function (a) { var on = +a.dataset.go === QMAP[i]; a.classList.toggle('on', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  }
 
   /* 시작 */
   applyStatic(); loadAll(); loadProfile();
