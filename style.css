@@ -802,3 +802,20 @@
     #sCon .wrap.g4 { grid-template-rows: auto auto auto minmax(110px, 1fr) auto; }
     #sCon .hv { align-items: start; }
   }
+
+  /* ===== 휴머니즘 화면 PC 레이아웃: 왼쪽 큰 제목 + 바로 아래 회전 문구, 오른쪽 큰 영상 ===== */
+  #sCon .wrap.g4 { grid-template-rows: auto minmax(0, 1fr) clamp(84px, 18cqh, 200px) auto; }
+  .hum-main { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(20px, 3.4cqw, 64px); align-items: center; min-height: 0; }
+  .hum-l { display: flex; flex-direction: column; justify-content: center; gap: clamp(14px, 2.6cqh, 30px); min-width: 0; }
+  .hum-l .hd { justify-self: auto; max-width: none; }
+  .hum-l .hd .tp { font: 800 clamp(20px, 2.1cqw, 38px)/1.3 var(--f-body); letter-spacing: -.03em; color: var(--fg); min-height: 1.4em; margin: 0; word-break: keep-all; }
+  .hum-main > .hv { display: grid; align-items: center; justify-items: end; min-height: 0; }
+  .hum-main > .hv .video { width: 100%; height: auto; max-width: calc((82cqh - 330px) * 16 / 9); aspect-ratio: 16 / 9; }
+  @container (max-width: 860px) {
+    #sCon .wrap.g4 { grid-template-rows: auto auto minmax(110px, 1fr) auto; }
+    .hum-main { display: flex; flex-direction: column; align-items: stretch; gap: 16px; }
+    .hum-l { gap: 10px; }
+    .hum-l .hd .tp { font-size: clamp(17px, 5.2cqw, 24px); }
+    .hum-main > .hv { justify-items: stretch; }
+    .hum-main > .hv .video { max-width: none; width: 100%; }
+  }

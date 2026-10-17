@@ -192,7 +192,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
       mch.hidden = false; playBars();
     } else { mch.hidden = true; }
     var cy2 = new Date().getFullYear() * 100 + 1;
-    pfL.innerHTML = rows.map(function (r, i) { return '<div class="pf-item' + (pkey(r.p) >= cy2 ? ' new' : '') + '" style="--i:' + Math.min(i, 14) + '"><span class="pp">' + esc(r.p).replace('~', '~<br class="pbr">') + '</span><span class="tt">' + esc(r.t) + '</span><span class="oo">' + esc(r.o) + '</span></div>'; }).join('');
+    pfL.innerHTML = rows.map(function (r, i) { return '<div class="pf-item' + (pkey(r.p) >= cy2 || /현재|present|ongoing/i.test(r.p) ? ' new' : '') + '" style="--i:' + Math.min(i, 14) + '"><span class="pp">' + esc(r.p).replace('~', '~<br class="pbr">') + '</span><span class="tt">' + esc(r.t) + '</span><span class="oo">' + esc(r.o) + '</span></div>'; }).join('');
   }
 
   /* ---------- 히어로 통계 · 변화(성과) ---------- */
