@@ -7,6 +7,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
 (function () {
   'use strict';
   var LITE = document.documentElement.classList.contains('lite');
+  var AUTO = !LITE && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   function api(fn) {
@@ -71,7 +72,8 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     var parts = [isKr() ? '주말의 코드가, 복지의 월요일을 바꿉니다' : "Weekend code rewrites welfare's Monday", 'SOCIAL WELFARE × AI'].concat(state.banners.map(function (b) { return String(b.title || '').replace(/<br\s*\/?>/gi, ' '); }).filter(Boolean)).concat(['JINHYUN.AI']);
     var line = parts.join('  //  ') + '  //  ';
     var h = esc(line).replace(/\/\//g, '<b>//</b>');
-    $('#tick').innerHTML = '<span>' + h + h + '</span><span>' + h + h + '</span>';
+    var tk = $('#tick'); if (!tk) return;
+    tk.innerHTML = '<span>' + h + h + '</span><span>' + h + h + '</span>';
   }
   renderTicker();
 
@@ -150,11 +152,14 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
         box.style.backgroundImage = 'linear-gradient(rgba(17,19,24,.35), rgba(17,19,24,.55)), url(https://img.youtube.com/vi/' + yt + '/hqdefault.jpg)';
         box.innerHTML = '<button class="play" type="button" aria-label="' + (isKr() ? '시연영상 재생' : 'Play demo') + '">▶</button><span class="lab"></span>';
         $('.lab', box).textContent = s.n + (isKr() ? ' · 시연영상' : ' · demo');
-        $('.play', box).onclick = function () {
+        var startYt = function (auto) {
           box.classList.add('playing'); box.style.backgroundImage = 'none';
-          box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + yt + '?autoplay=1&rel=0&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="' + esc(s.n) + '"></iframe>';
-          if (typeof logFootprint === 'function') logFootprint('Demo', '영상 시연 클릭', s.n);
+          box.innerHTML = ytFrame(yt, s.n, auto);
+          if (auto) soundBtn(box);
+          if (typeof logFootprint === 'function') logFootprint('Demo', auto ? '영상 자동재생' : '영상 시연 클릭', s.n);
         };
+        $('.play', box).onclick = function () { startYt(false); };
+        if (AUTO) startYt(true);
       } else if (mm) {
         var id = mm[1];
         box.hidden = false; box.classList.remove('playing');
@@ -259,12 +264,17 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     var ml = $('#footerMail'); if (ml && d.email) ml.innerHTML = '<span class="hv-ml">EMAIL</span><a href="mailto:' + esc(d.email) + '">' + esc(d.email) + '</a>';
     if (d.copyright) { var c = $('#footer-copyright'); if (c && c.firstChild) c.firstChild.textContent = String(d.copyright).replace(/<[^>]*>/g, '') + ' '; }
   }
-  $('#playBtn').addEventListener('click', function () {
-    var url = state.promo || ''; var m = url.match(/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/); var id = (m && m[7] && m[7].length === 11) ? m[7] : '';
-    if (!id) return; var box = $('#promo-video-container'); box.classList.add('playing');
-    box.insertAdjacentHTML('beforeend', '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="홍보영상"></iframe>');
-    if (typeof logFootprint === 'function') logFootprint('Footer', '홍보영상 재생');
-  });
+  function promoPlay(auto) {
+    var id = ytId(state.promo), box = $('#promo-video-container'); if (!id || !box || box.classList.contains('playing')) return;
+    box.classList.add('playing'); box.insertAdjacentHTML('beforeend', ytFrame(id, '홍보영상', auto));
+    if (auto) soundBtn(box);
+    if (typeof logFootprint === 'function') logFootprint('Footer', auto ? '홍보영상 자동재생' : '홍보영상 재생');
+  }
+  function promoStop() {
+    var box = $('#promo-video-container'); if (!box || !box.classList.contains('playing')) return;
+    $$('iframe, .snd', box).forEach(function (n) { n.remove(); }); box.classList.remove('playing');
+  }
+  $('#playBtn').addEventListener('click', function () { promoPlay(false); });
 
   /* ---------- 데이터 로드 ---------- */
   /* ---------- 로딩 화면 + 캐시(재방문 즉시 표시) ---------- */
@@ -291,7 +301,6 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
 
   function loadAll() {
     var L = isKr() ? 'kr' : 'en';
-    cachedApi('getBannerData', L, function (d) { state.banners = d || []; renderTicker(); }).catch(warn);
     cachedApi('getAboutWeek', L, function (d) { state.week = d || []; renderAbout(); }).catch(function () {
       api('getAboutData', L).then(function (a) { if (!a) return; state.week = [{ day: todayIdx + 1, slogan: a.slogan, philosophy: a.philosophy, branding: a.branding }]; renderAbout(); }).catch(warn);
     });
@@ -306,6 +315,19 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   /* 문의 화면 영상: 구글 시트 '에이전트 영상' 탭 A2의 유튜브 주소를 사용합니다(시트만 바꾸면 즉시 반영, 배포 불필요).
      시트 값이 비었거나 유튜브 주소가 아닐 때만 아래 기본 영상(2026 춘계학술대회 발표)을 보여 줍니다. 영상 아래 제목은 유튜브에서 자동으로 가져옵니다. */
   var PROMO_FALLBACK = 'https://youtu.be/w4rMsyA4v_k';
+  function ytFrame(id, title, auto) {
+    return '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1&modestbranding=1' + (auto ? '&mute=1&enablejsapi=1' : '') + '" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="' + esc(title) + '"></iframe>';
+  }
+  function soundBtn(box) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'snd'; b.textContent = isKr() ? '소리 켜기' : 'SOUND ON';
+    b.onclick = function () {
+      var f = $('iframe', box); if (f && f.contentWindow) {
+        [{ func: 'unMute', args: [] }, { func: 'setVolume', args: [100] }, { func: 'playVideo', args: [] }].forEach(function (c) { f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: c.func, args: c.args }), '*'); });
+      }
+      b.remove();
+    };
+    box.appendChild(b);
+  }
   function ytId(u) { var m = String(u || '').match(/(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/)([\w-]{11})/); return m ? m[1] : ''; }
   function setPromo(u) {
     var id = ytId(u) ? u : PROMO_FALLBACK; id = ytId(id);
@@ -503,6 +525,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   $$('.chapter').forEach(function (ch) { var s = ch.closest('.slide'), si = slides.indexOf(s); $$('[data-step]', ch).forEach(function (b) { b.addEventListener('click', function () { setPanel(si, +b.dataset.step); }); }); });
   function activate(i, first) {
     var prev = curIdx; curIdx = i; markQ(i); net.on(i === 0); art.on(i === 3);
+    if (i === 3) { if (AUTO) setTimeout(function () { if (curIdx === 3) promoPlay(true); }, 700); } else promoStop();
     $$('button', pg).forEach(function (b, k) { b.classList.toggle('on', k === i); });
     slides.forEach(function (s, k) { if (k !== i) { s.classList.remove('in'); (s._panels || []).forEach(function (pn) { pn.classList.remove('in'); $$('.card.ready', pn).forEach(function (c) { c.classList.remove('ready'); }); }); } });
     var s = slides[i];

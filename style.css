@@ -850,3 +850,37 @@
   .sheet .sv.playing .play, .sheet .sv.playing .lab { display: none; }
   .sdemo { display: inline-block; margin: 0 0 14px; font: 700 12px/1 var(--f-mono); letter-spacing: .08em; color: var(--fg-60); text-decoration: underline; text-underline-offset: 4px; }
   .sdemo:hover { color: var(--lime); }
+
+  /* 소리 켜기 버튼(자동재생은 음소거로 시작) */
+  .video .snd { position: absolute; top: 10px; right: 10px; z-index: 4; padding: 9px 13px; background: var(--lime); color: #111; border: 0; font: 800 12px/1 var(--f-mono); letter-spacing: .08em; cursor: pointer; box-shadow: 0 2px 14px rgba(0,0,0,.45); }
+  .video .snd:hover { background: #fff; }
+
+  /* ===== 해법 흐름도: 설계도 느낌 + 단계 점등 + 사람 검토 되돌림 ===== */
+  .flow .node text.st { font: 700 11px var(--f-mono); letter-spacing: .24em; fill: var(--lime); text-anchor: middle; }
+  .flow .node.human text.st { fill: var(--amber); }
+  .flow .node path.br { fill: none; stroke: var(--lime); stroke-width: 1.3; opacity: .75; }
+  .flow .node.human path.br { stroke: var(--amber); }
+  .flow .ic { fill: none; stroke: var(--lime); stroke-width: 1.7; stroke-linecap: square; stroke-linejoin: miter; }
+  .flow .node.core .ic { stroke: #111318; }
+  .flow .node.human .ic { stroke: var(--amber); }
+  .flow path.l.loop { stroke: var(--amber); opacity: .85; }
+  .flow polygon.ah { fill: var(--amber); opacity: 0; transition: opacity .4s 1.9s; }
+  .in .flow polygon.ah { opacity: .9; }
+  .flow text.lp { font: 700 11px var(--f-mono); letter-spacing: .1em; fill: var(--amber); text-anchor: middle; opacity: 0; transition: opacity .5s 2s; }
+  .in .flow text.lp { opacity: .9; }
+  @keyframes stOn { 0%, 16%, 100% { stroke: var(--line-2); fill: rgba(244,244,240,.05); filter: drop-shadow(0 0 0 rgba(195,244,0,0)); } 3%, 12% { stroke: var(--lime); fill: rgba(195,244,0,.1); filter: drop-shadow(0 0 9px rgba(195,244,0,.5)); } }
+  @keyframes stHum { 0%, 28%, 100% { fill: rgba(244,244,240,.05); filter: drop-shadow(0 0 0 rgba(255,176,102,0)); } 4%, 24% { fill: rgba(255,176,102,.12); filter: drop-shadow(0 0 10px rgba(255,176,102,.55)); } }
+  @keyframes stCore { 0%, 22%, 100% { filter: drop-shadow(0 0 0 rgba(195,244,0,0)); } 4%, 18% { filter: drop-shadow(0 0 24px rgba(195,244,0,.75)); } }
+  @keyframes chipOn { 0%, 12%, 100% { fill: rgba(17,19,24,.14); } 2%, 8% { fill: rgba(255,255,255,.85); } }
+  .in .flow .node .bx { animation: stOn 8s linear infinite; animation-delay: calc(1.8s + var(--d, 0s)); }
+  .in .flow .node.human .bx { animation-name: stHum; }
+  .in .flow .node.core .bx { animation-name: stCore; }
+  .in .flow .node.core .chip { animation: chipOn 8s linear infinite; }
+  .in .flow .node.core .chip:nth-of-type(2) { animation-delay: 4.0s; }
+  .in .flow .node.core .chip:nth-of-type(3) { animation-delay: 4.15s; }
+  .in .flow .node.core .chip:nth-of-type(4) { animation-delay: 4.3s; }
+  .in .flow .node.core .chip:nth-of-type(5) { animation-delay: 4.45s; }
+  .in .flow .node.core .chip:nth-of-type(6) { animation-delay: 4.6s; }
+  .in .flow .node.core .chip:nth-of-type(7) { animation-delay: 4.75s; }
+  .lite .flow .bx, .lite .flow .chip { animation: none !important; }
+  @media (prefers-reduced-motion: reduce) { .flow .bx, .flow .chip { animation: none !important; } }
