@@ -225,7 +225,8 @@
   .card:hover, .card:focus-visible { background: var(--lime); border-color: var(--lime); color: #111; --tx: -6px; --ty: -6px; box-shadow: 12px 12px 0 0 var(--fg); z-index: 3; }
   .card:hover::before { display: none; }
   .card .no { position: absolute; left: 10px; top: 34px; font: 900 clamp(96px, 12cqw, 210px)/1 var(--f-display); letter-spacing: -.06em; color: transparent; -webkit-text-stroke: 1px var(--line-2); pointer-events: none; }
-  .card:hover .no { -webkit-text-stroke-color: rgba(17,19,24,.35); }
+  .card .no { transition: color .3s var(--ease), -webkit-text-stroke-color .3s; }
+  .card:hover .no, .card:focus-visible .no { color: #111318; -webkit-text-stroke-color: #111318; }
   .card .lab { color: var(--lime); position: relative; }
   .card:hover .lab, .card:hover p, .card:hover .foot { color: #111; }
   .card h4 { margin-top: auto; font: 900 clamp(16px, 1.5cqw, 26px)/1.15 var(--f-body); letter-spacing: -.05em; word-break: keep-all; overflow-wrap: break-word; position: relative; }
