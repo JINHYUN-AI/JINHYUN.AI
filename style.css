@@ -545,6 +545,7 @@
     .ghead .body-lg { justify-self: start; max-width: none; font-size: 13px; }
     .ghead .chips { justify-self: start; width: 100%; }
     .t1 { font-size: clamp(28px, 8.4cqw, 52px); }
+    #s5b .t1 br { display: none; }
     .chapter { flex-wrap: wrap; row-gap: 8px; padding-bottom: 8px; }
     .ch-name { order: 1; } .ch-pos { order: 2; margin-left: auto; }
     .ch-steps { order: 3; width: 100%; flex: none; display: grid; grid-template-columns: repeat(var(--n, 4), 1fr); gap: 4px; }
