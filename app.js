@@ -54,7 +54,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   }
   function setLang(l) {
     currentLang = l; try { localStorage.setItem('site_lang', l); } catch (e) { }
-    applyStatic(); applyHum(); loadAll(); renderResult(); renderPortfolio();
+    applyStatic(); applyHum(); loadAll(); loadProfile(); renderResult(); renderPortfolio();
   }
   $$('.lg').forEach(function (b) { b.addEventListener('click', function () { setLang(b.dataset.lang || (b.id === 'lang-en' ? 'en' : 'kr')); }); });
 
