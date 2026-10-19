@@ -38,7 +38,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     log1: 'Colloquial field notes converted into structured daily records', log2: 'Results of 37 indicators filled into forms automatically', log3: 'Stays stable even beyond traffic limits', sample: 'sample',
     res_h: 'Time returned<br>to people<span class="lime">.</span>', res_p: 'Conversation moves into the space paperwork leaves. Before any number changes, the faces in the field do.',
     concept: 'The chart below is a concept diagram', cross: 'Crossover · the moment time comes back', g_hi1: 'Counseling', g_lo1: 'Admin time', before: 'Before', after: 'After',
-    q_home: 'Home', q_phil: 'Story', q_sol: 'Solutions', q_prof: 'Profile', q_tech: 'Tech', q_contact: 'Contact', q_ai: 'AI Chat', sol_sub: '4/4 · Systems I built · click a card for details', prof_label: 'Profile & expertise', prof_note: 'Live-linked to the Profile sheet',
+    q_home: 'Home', q_phil: 'Story', q_sol: 'Solutions', q_prof: 'Profile', q_tech: 'Tech', q_contact: 'Contact', q_ai: 'AI Chat', sol_sub: '4/4 · Systems I built · click a card for details', prof_label: 'Profile & expertise',
     tech_sub: '2/2 · Reliable on Google Cloud', tech_note: 'Bar length = number of tools per layer'
   };
   $$('[data-t]').forEach(function (el) { el.dataset.kr = el.innerHTML; });
