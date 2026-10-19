@@ -181,8 +181,8 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
   $('#close').onclick = closeSheet; veil.onclick = closeSheet;
 
   /* ---------- 이력/전문성 ---------- */
-  var PTABS = { kr: ['활동·자문', '연구·발표', '개발', '출강', '학력·경력', '저작권'], en: ['Advisory', 'Research', 'Development', 'Teaching', 'Career', 'Copyright'] };
-  var PCATS = [['Activity'], ['Research'], ['Development'], ['Lecture'], ['Education', 'Experience'], null];
+  var PTABS = { kr: ['활동·자문', '연구·발표', '개발', '출강', '실무경력', '저작권'], en: ['Advisory', 'Research', 'Development', 'Teaching', 'Experience', 'Copyright'] };
+  var PCATS = [['Activity'], ['Research'], ['Development'], ['Lecture'], ['Experience'], null];
   var pfT = $('#pfTabs'), pfL = $('#pfList'), mch = $('#mchart'), pfSel = 0;
   function cat(c) { return state.profile.items.filter(function (r) { return c.indexOf(r.c) >= 0; }); }
   function renderPortfolio() {
