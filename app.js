@@ -26,7 +26,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     nav_home: 'Home', nav_sol: 'Solutions', nav_prof: 'Profile & Tech', nav_hum: 'Humanism', btn_inquiry: 'Contact',
     prof_h: '25 years in the field,<br>proven record<span class="lime">.</span>', st_prob: 'Problem', st_sol: 'Solution', st_res: 'Result', st_sys: 'Systems', st_prof: 'Profile', st_tech: 'Tech',
     sys_h: 'Systems I developed<span class="lime">.</span>', tech_h: 'Running on Google<br>tech stack<span class="lime">.</span>',
-    greet: "Hello, I'm <b>Jang Jin-hyun</b>, the coding secretary general.", greet2: 'What happens when a 25-year social welfare practitioner writes the code himself? Here is a realistic alternative, shown in working systems.',
+    greet: "Hello, I'm <b>Jang Jin-hyun</b>, the coding secretary general.", greet2: 'See how much changes when a 25-year social welfare practitioner writes the code personally, shown through office automation and AI agents.',
     hero_tag: 'SOCIAL WELFARE × AI · SECRETARY GENERAL, LIGHTHOUSE HOUSE',
     hero_h: '<span class="ko">Weekend code</span><br><span class="ko">rewrites welfare\'s</span><br><span class="ko">Monday<em>.</em></span>',
     hero_sub: 'AI-powered admin automation, built by a practitioner who knows the field. We give the time spent on paperwork back to people.',
