@@ -951,3 +951,8 @@
 .ct-ticks span.off { opacity: .3; text-decoration: line-through; }
 .ct-ticks span.on { color: var(--lime); font-weight: 800; }
 .ct-hint { display: block; margin-top: 10px; font-size: .78rem; color: var(--fg-40); line-height: 1.4; }
+
+/* 문의하기: 칩이 줄 안에서 좌우 여백 없이 꽉 차게, 솔루션 목록은 안쪽 스크롤 없이 전체 표시 */
+.ct-chips { gap: 6px; }
+.ct-chip { flex: 1 1 auto; text-align: center; }
+.ct-small { max-height: none; overflow: visible; padding: 0; }
