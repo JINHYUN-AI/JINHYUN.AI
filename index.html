@@ -370,25 +370,30 @@
                                     <button type="button" class="ct-chip" data-v="기타" data-ct="c_etc">기타</button>
                                 </div>
                             </div>
+                            <div class="form-group">
+                                <label data-ct="l_mode">진행 방식</label>
+                                <div class="ct-chips ct-single" id="ct-mode">
+                                    <button type="button" class="ct-chip" data-v="오프라인(대면)" data-ct="m_off">오프라인(대면)</button>
+                                    <button type="button" class="ct-chip" data-v="온라인" data-ct="m_on">온라인</button>
+                                </div>
+                            </div>
                             <div class="ct-row2">
                                 <div class="form-group">
                                     <label for="ct-count" data-ct="l_count">인원 (명)</label>
                                     <input type="number" min="1" id="ct-count" class="form-input" placeholder="30">
                                 </div>
                                 <div class="form-group">
-                                    <label for="ct-region" data-ct="l_region">지역</label>
+                                    <label for="ct-region" data-ct="l_region">지역 (오프라인일 때)</label>
                                     <input type="text" id="ct-region" class="form-input" data-ctp="p_region" placeholder="예: 대전 서구">
                                 </div>
                             </div>
-                            <label class="ct-check" style="margin-top:-6px;"><input type="checkbox" id="ct-online"> <span data-ct="l_online">온라인 강의도 가능합니다</span></label>
-                            <div class="form-group" style="margin-top:14px;">
-                                <label data-ct="l_hours">강의 시간</label>
-                                <div class="ct-chips ct-single" id="ct-hours">
-                                    <button type="button" class="ct-chip" data-v="1시간" data-ct="h1">1시간</button>
-                                    <button type="button" class="ct-chip" data-v="2시간" data-ct="h2">2시간</button>
-                                    <button type="button" class="ct-chip" data-v="반일(약 4시간)" data-ct="h4">반일(약 4시간)</button>
-                                    <button type="button" class="ct-chip" data-v="종일" data-ct="h8">종일</button>
-                                    <button type="button" class="ct-chip" data-v="협의" data-ct="hx">협의</button>
+                            <div class="form-group">
+                                <label data-ct="l_hours">강의 시간 (1일 기준)</label>
+                                <div class="ct-slider">
+                                    <div class="ct-hrs-val" id="ct-hrs-val">아래 막대를 움직여 선택</div>
+                                    <input type="range" id="ct-hrs" min="1" max="8" step="1" value="1" aria-label="강의 시간">
+                                    <div class="ct-ticks" id="ct-ticks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span></div>
+                                    <small class="ct-hint" data-ct="hrs_hint">온라인은 1시간부터, 오프라인은 3시간 이상부터 가능합니다.</small>
                                 </div>
                             </div>
                             <div class="form-group">

@@ -582,8 +582,8 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
         lead: 'What would you like to ask about?', t_lecture: 'Lecture request', t_lecture_s: 'AI · smart work · office automation',
         t_platform: 'Platform / solution inquiry', t_platform_s: 'Adopt a built solution or custom development', t_other: 'Other inquiries here', back: '← Change type',
         l_date: 'Preferred date (1st / 2nd choice)', l_flex: 'Date is negotiable', l_target: 'Audience (multiple)', c_swk: 'Social workers', c_mgr: 'Managers', c_staff: 'General staff', c_etc: 'Other',
-        l_count: 'Participants', l_region: 'Region', p_region: 'e.g. Daejeon', l_online: 'Online is also possible', l_hours: 'Duration',
-        h1: '1 hour', h2: '2 hours', h4: 'Half day (~4h)', h8: 'Full day', hx: 'To be discussed',
+        l_count: 'Participants', l_region: 'Region (if offline)', p_region: 'e.g. Daejeon', l_mode: 'Format', m_off: 'Offline (in person)', m_on: 'Online', l_hours: 'Duration per day',
+        hrs_hint: 'Online: from 1 hour. Offline: 3 hours or more.',
         l_topic: 'Topic (multiple)', s_ai: 'Using AI', s_sw: 'Smart work', s_auto: 'Office automation', s_vibe: 'Vibe coding', s_etc: 'Other',
         l_note: 'Additional requests (optional)', p_lnote: 'Purpose, trainee level, anything else.',
         p_sol: 'Solutions of interest (multiple)', p_need: 'What do you need?', p_pneed: 'Which work would you like to automate? How is it handled now?',
@@ -604,6 +604,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
             var k = el.getAttribute('data-ctp');
             el.setAttribute('placeholder', (en && CT_EN[k] != null) ? CT_EN[k] : el.dataset.krp);
         });
+        if (typeof ctHrsRender === 'function') ctHrsRender();
     }
     function ctBuildSols() {
         var box = document.getElementById('ct-sols');
@@ -631,6 +632,28 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     }
     function ctVal(id) { var el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; }
 
+    function ctMode() { return ctPicked('ct-mode')[0] || ''; }
+    function ctHrsRender() {
+        var r = document.getElementById('ct-hrs');
+        if (!r) return;
+        var min = ctMode() === '오프라인(대면)' ? 3 : 1;
+        if (+r.value < min) r.value = min;
+        var touched = r.dataset.touched === '1';
+        document.getElementById('ct-hrs-val').textContent = touched ? (r.value + ctT('시간', ' h')) : ctT('아래 막대를 움직여 선택', 'Drag the bar to select');
+        document.querySelectorAll('#ct-ticks span').forEach(function (s) {
+            s.classList.toggle('off', +s.textContent < min);
+            s.classList.toggle('on', touched && +s.textContent === +r.value);
+        });
+        r.style.setProperty('--p', ((r.value - 1) / 7 * 100) + '%');
+    }
+    function ctHrsReset() {
+        var r = document.getElementById('ct-hrs');
+        if (!r) return;
+        delete r.dataset.touched;
+        r.value = 1;
+        ctHrsRender();
+    }
+
     function openContactModal(e) {
         if (e) e.preventDefault();
         ctApply();
@@ -650,18 +673,20 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
 
         if (ctType === 'lecture') {
             const d1 = ctVal('ct-date1'), d2 = ctVal('ct-date2'), flex = document.getElementById('ct-dateflex').checked;
-            const target = ctPicked('ct-target'), topic = ctPicked('ct-topic'), hours = ctPicked('ct-hours')[0] || '';
-            const count = ctVal('ct-count'), region = ctVal('ct-region'), online = document.getElementById('ct-online').checked;
+            const target = ctPicked('ct-target'), topic = ctPicked('ct-topic'), mode = ctMode();
+            const count = ctVal('ct-count'), region = ctVal('ct-region');
+            const hr = document.getElementById('ct-hrs'), hours = hr.dataset.touched === '1' ? hr.value + '시간' : '';
             if (!d1 && !flex) return fail(ctT('희망 일자를 고르시거나 "날짜는 협의 가능"을 체크해 주세요.', 'Please pick a date or tick "Date is negotiable".'));
             if (!target.length) return fail(ctT('강의 대상을 선택해 주세요.', 'Please select the audience.'));
-            if (!region && !online) return fail(ctT('지역을 입력하시거나 온라인 가능을 체크해 주세요.', 'Please enter a region or tick online.'));
+            if (!mode) return fail(ctT('진행 방식(오프라인/온라인)을 선택해 주세요.', 'Please choose offline or online.'));
+            if (mode !== '온라인' && !region) return fail(ctT('오프라인 강의는 지역을 입력해 주세요.', 'Please enter the region for an offline session.'));
             if (!topic.length) return fail(ctT('강의 주제를 선택해 주세요.', 'Please select a topic.'));
             items = [
                 ['희망일자(1순위)', d1], ['희망일자(2순위)', d2], ['날짜 협의', flex ? '가능' : ''], ['대상', target.join(', ')],
-                ['인원', count ? count + '명' : ''], ['지역', [region, online ? '온라인 가능' : ''].filter(Boolean).join(' / ')],
-                ['강의 시간', hours], ['주제', topic.join(', ')], ['추가 요청사항', ctVal('ct-lnote')]
+                ['인원', count ? count + '명' : ''], ['진행 방식', mode], ['지역', region],
+                ['강의 시간(1일 기준)', hours], ['주제', topic.join(', ')], ['추가 요청사항', ctVal('ct-lnote')]
             ];
-            summary = [d1 || (flex ? '일정협의' : ''), count ? count + '명' : '', hours, region || (online ? '온라인' : ''), topic.join('·')].filter(Boolean).join(' / ');
+            summary = [d1 || (flex ? '일정협의' : ''), count ? count + '명' : '', hours, mode === '온라인' ? '온라인' : region, topic.join('·')].filter(Boolean).join(' / ');
         } else if (ctType === 'platform') {
             const sols = ctPicked('ct-sols'), need = ctVal('ct-pneed');
             if (!need) return fail(ctT('원하시는 내용을 적어 주세요.', 'Please describe what you need.'));
@@ -694,6 +719,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
                     status.innerText = res.message;
                     status.style.color = "var(--mantine-color-teal-6)";
                     document.getElementById('contact-form').reset();
+                    ctHrsReset();
                     document.querySelectorAll('#contact-form .ct-chip.on').forEach(function (c) { c.classList.remove('on'); c.setAttribute('aria-pressed', 'false'); });
                     // 동의 상태 초기화
                     document.getElementById('contact-consent-hidden').value = 'false';
@@ -732,6 +758,8 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
         });
         const back = document.getElementById('ct-back');
         if (back) back.addEventListener('click', function () { ctShow(null); });
+        const hrs = document.getElementById('ct-hrs');
+        if (hrs) hrs.addEventListener('input', function () { hrs.dataset.touched = '1'; ctHrsRender(); });
         const form = document.getElementById('contact-form');
         if (form) form.addEventListener('click', function (ev) {
             const chip = ev.target.closest ? ev.target.closest('.ct-chip') : null;
@@ -742,6 +770,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
             }
             chip.classList.toggle('on', on);
             chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+            if (chip.parentNode.id === 'ct-mode') ctHrsRender();
         });
     });
 
