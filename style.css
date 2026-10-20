@@ -956,3 +956,13 @@
 .ct-chips { gap: 6px; }
 .ct-chip { flex: 1 1 auto; text-align: center; }
 .ct-small { max-height: none; overflow: visible; padding: 0; }
+
+/* 문의하기: 솔루션 칩은 2열 격자, 단일 선택 칩(예산·진행 방식)은 한 줄에 같은 폭으로 양 끝까지 */
+.ct-small { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ct-small .ct-chip { display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.3; }
+.ct-small .ct-custom { grid-column: 1 / -1; }
+.ct-chips.ct-single { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
+.ct-chips.ct-single .ct-chip { display: flex; align-items: center; justify-content: center; text-align: center; padding-left: 6px; padding-right: 6px; }
+@media (max-width: 420px) {
+  .ct-chips.ct-single .ct-chip { font-size: .74rem; padding: 9px 3px; }
+}
