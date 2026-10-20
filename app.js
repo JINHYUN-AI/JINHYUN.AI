@@ -304,7 +304,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     cachedApi('getAboutWeek', L, function (d) { state.week = d || []; renderAbout(); }).catch(function () {
       api('getAboutData', L).then(function (a) { if (!a) return; state.week = [{ day: todayIdx + 1, slogan: a.slogan, philosophy: a.philosophy, branding: a.branding }]; renderAbout(); }).catch(warn);
     });
-    cachedApi('getSystemData', L, function (d) { state.systems = (d || []).map(toSys); partSel = 0; renderFilters(); renderCards(); renderHeroStats(); renderResult(); }).catch(function (e) { warn(e); sc.innerHTML = '<p style="color:var(--fg-60);padding:20px">데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>'; });
+    cachedApi('getSystemData', L, function (d) { state.systems = (d || []).map(toSys); window.JH_SYS = state.systems.map(function (x) { return x.n; }).filter(Boolean); partSel = 0; renderFilters(); renderCards(); renderHeroStats(); renderResult(); }).catch(function (e) { warn(e); sc.innerHTML = '<p style="color:var(--fg-60);padding:20px">데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>'; });
     cachedApi('getTools', L, renderTech).catch(warn);
     cachedApi('getFooterData', L, renderFooter).catch(warn);
     cachedApi('getMetricsData', L, function (d) { state.metrics = d || {}; renderHeroStats(); renderResult(); }).catch(warn);
@@ -576,38 +576,115 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
         document.getElementById(id).classList.remove('open');
     }
 
-    // Contact Modal
+    // Contact Modal (문의 유형별 양식: 강의 의뢰 / 플랫폼 개발 / 기타)
+    var ctType = null;
+    var CT_EN = {
+        lead: 'What would you like to ask about?', t_lecture: 'Lecture request', t_lecture_s: 'AI · smart work · office automation',
+        t_platform: 'Platform / solution inquiry', t_platform_s: 'Adopt a built solution or custom development', t_other: 'Other inquiries here', back: '← Change type',
+        l_date: 'Preferred date (1st / 2nd choice)', l_flex: 'Date is negotiable', l_target: 'Audience (multiple)', c_swk: 'Social workers', c_mgr: 'Managers', c_staff: 'General staff', c_etc: 'Other',
+        l_count: 'Participants', l_region: 'Region', p_region: 'e.g. Daejeon', l_online: 'Online is also possible', l_hours: 'Duration',
+        h1: '1 hour', h2: '2 hours', h4: 'Half day (~4h)', h8: 'Full day', hx: 'To be discussed',
+        l_topic: 'Topic (multiple)', s_ai: 'Using AI', s_sw: 'Smart work', s_auto: 'Office automation', s_vibe: 'Vibe coding', s_etc: 'Other',
+        l_note: 'Additional requests (optional)', p_lnote: 'Purpose, trainee level, anything else.',
+        p_sol: 'Solutions of interest (multiple)', p_need: 'What do you need?', p_pneed: 'Which work would you like to automate? How is it handled now?',
+        p_when: 'Desired timing (optional)', p_pwhen: 'e.g. first half of next year', p_budget: 'Budget range (optional)',
+        b0: 'Undecided', b1: 'Under 5M KRW', b2: '5 – 15M KRW', b3: '15M KRW or more', f_name: 'Name / Organization'
+    };
+    function ctIsEn() { return typeof currentLang !== 'undefined' && currentLang === 'en'; }
+    function ctT(ko, en) { return ctIsEn() ? en : ko; }
+    function ctApply() {
+        var en = ctIsEn();
+        document.querySelectorAll('#contact-form [data-ct]').forEach(function (el) {
+            if (el.dataset.kr == null) el.dataset.kr = el.textContent;
+            var k = el.getAttribute('data-ct');
+            el.textContent = (en && CT_EN[k] != null) ? CT_EN[k] : el.dataset.kr;
+        });
+        document.querySelectorAll('#contact-form [data-ctp]').forEach(function (el) {
+            if (el.dataset.krp == null) el.dataset.krp = el.getAttribute('placeholder') || '';
+            var k = el.getAttribute('data-ctp');
+            el.setAttribute('placeholder', (en && CT_EN[k] != null) ? CT_EN[k] : el.dataset.krp);
+        });
+    }
+    function ctBuildSols() {
+        var box = document.getElementById('ct-sols');
+        if (!box) return;
+        var names = (window.JH_SYS || []).slice();
+        var html = names.map(function (n) { return '<button type="button" class="ct-chip" data-v="' + String(n).replace(/"/g, '&quot;') + '"></button>'; }).join('');
+        html += '<button type="button" class="ct-chip ct-custom" data-v="맞춤 개발(새 플랫폼)"></button>';
+        box.innerHTML = html;
+        var chips = box.querySelectorAll('.ct-chip');
+        names.forEach(function (n, i) { chips[i].textContent = n; });
+        chips[chips.length - 1].textContent = ctT('+ 맞춤 개발 (새 플랫폼)', '+ Custom development');
+    }
+    function ctShow(type) {
+        ctType = type;
+        document.getElementById('ct-pick').style.display = type ? 'none' : 'block';
+        document.getElementById('ct-body').style.display = type ? 'block' : 'none';
+        document.querySelectorAll('#contact-form .ct-pane').forEach(function (p) { p.style.display = (p.getAttribute('data-pane') === type) ? 'block' : 'none'; });
+        var names = { lecture: ctT('🎤 강의·출강 의뢰', '🎤 Lecture request'), platform: ctT('🛠 플랫폼·솔루션 개발 문의', '🛠 Platform inquiry'), other: ctT('💬 그 밖의 문의', '💬 Other inquiry') };
+        document.getElementById('ct-typename').textContent = type ? names[type] : '';
+        if (type === 'platform') ctBuildSols();
+        document.getElementById('contact-status').innerText = '';
+    }
+    function ctPicked(id) {
+        return Array.prototype.map.call(document.querySelectorAll('#' + id + ' .ct-chip.on'), function (c) { return c.getAttribute('data-v'); });
+    }
+    function ctVal(id) { var el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; }
+
     function openContactModal(e) {
         if (e) e.preventDefault();
+        ctApply();
+        if (ctType) ctShow(ctType);
         document.getElementById('contact-modal').classList.add('open');
     }
 
     function submitContact(e) {
         e.preventDefault();
-        const btn = e.target.querySelector('button');
+        if (!ctType) return;
+        const btn = document.getElementById('contact-submit-btn');
         const status = document.getElementById('contact-status');
+        const fail = function (msg) { status.innerText = msg; status.style.color = "#fa5252"; };
 
+        const name = ctVal('contact-name'), contact = ctVal('contact-contact');
+        let items = [], summary = '';
+
+        if (ctType === 'lecture') {
+            const d1 = ctVal('ct-date1'), d2 = ctVal('ct-date2'), flex = document.getElementById('ct-dateflex').checked;
+            const target = ctPicked('ct-target'), topic = ctPicked('ct-topic'), hours = ctPicked('ct-hours')[0] || '';
+            const count = ctVal('ct-count'), region = ctVal('ct-region'), online = document.getElementById('ct-online').checked;
+            if (!d1 && !flex) return fail(ctT('희망 일자를 고르시거나 "날짜는 협의 가능"을 체크해 주세요.', 'Please pick a date or tick "Date is negotiable".'));
+            if (!target.length) return fail(ctT('강의 대상을 선택해 주세요.', 'Please select the audience.'));
+            if (!region && !online) return fail(ctT('지역을 입력하시거나 온라인 가능을 체크해 주세요.', 'Please enter a region or tick online.'));
+            if (!topic.length) return fail(ctT('강의 주제를 선택해 주세요.', 'Please select a topic.'));
+            items = [
+                ['희망일자(1순위)', d1], ['희망일자(2순위)', d2], ['날짜 협의', flex ? '가능' : ''], ['대상', target.join(', ')],
+                ['인원', count ? count + '명' : ''], ['지역', [region, online ? '온라인 가능' : ''].filter(Boolean).join(' / ')],
+                ['강의 시간', hours], ['주제', topic.join(', ')], ['추가 요청사항', ctVal('ct-lnote')]
+            ];
+            summary = [d1 || (flex ? '일정협의' : ''), count ? count + '명' : '', hours, region || (online ? '온라인' : ''), topic.join('·')].filter(Boolean).join(' / ');
+        } else if (ctType === 'platform') {
+            const sols = ctPicked('ct-sols'), need = ctVal('ct-pneed');
+            if (!need) return fail(ctT('원하시는 내용을 적어 주세요.', 'Please describe what you need.'));
+            items = [['관심 솔루션', sols.join(', ')], ['원하시는 내용', need], ['희망 시기', ctVal('ct-pwhen')], ['예산 규모', ctPicked('ct-budget')[0] || '']];
+            summary = sols.length ? sols.join(', ') : '솔루션 미선택';
+        } else {
+            const title = ctVal('contact-title'), content = ctVal('contact-content');
+            if (!title || !content) return fail(ctT('제목과 문의내용을 입력해 주세요.', 'Please enter a subject and message.'));
+            items = [['제목', title], ['문의내용', content]];
+            summary = title;
+        }
+        if (!name || !contact) return fail(ctT('성함/소속과 연락처를 입력해 주세요.', 'Please enter your name and contact.'));
+
+        if (document.getElementById('contact-consent-hidden').value !== 'true') {
+            return fail("개인정보 수집 및 이용에 동의해 주세요.");
+        }
+
+        items = items.filter(function (it) { return it[1]; });
         const originalText = btn.innerText;
         btn.disabled = true;
         btn.innerText = "Sending...";
         status.innerText = "";
         status.style.color = "var(--mantine-color-dark-1)";
-
-        const formData = {
-            title: document.getElementById('contact-title').value,
-            name: document.getElementById('contact-name').value,
-            contact: document.getElementById('contact-contact').value,
-            content: document.getElementById('contact-content').value
-        };
-
-        const consent = document.getElementById('contact-consent-hidden').value;
-        if (consent !== 'true') {
-            status.innerText = "개인정보 수집 및 이용에 동의해 주세요.";
-            status.style.color = "#fa5252";
-            btn.disabled = false;
-            btn.innerText = originalText;
-            return;
-        }
 
         google.script.run
             .withSuccessHandler(res => {
@@ -617,11 +694,12 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
                     status.innerText = res.message;
                     status.style.color = "var(--mantine-color-teal-6)";
                     document.getElementById('contact-form').reset();
+                    document.querySelectorAll('#contact-form .ct-chip.on').forEach(function (c) { c.classList.remove('on'); c.setAttribute('aria-pressed', 'false'); });
                     // 동의 상태 초기화
                     document.getElementById('contact-consent-hidden').value = 'false';
                     document.getElementById('contact-consent-area').style.display = 'block';
                     document.getElementById('contact-submit-btn').style.display = 'none';
-                    setTimeout(() => closeModal('contact-modal'), 2000);
+                    setTimeout(() => { closeModal('contact-modal'); ctShow(null); }, 2000);
                 } else {
                     status.innerText = "Error: " + res.message;
                     status.style.color = "#fa5252";
@@ -633,10 +711,10 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
                 status.innerText = "Connection Error: " + err.message;
                 status.style.color = "#fa5252";
             })
-            .sendInquiryEmail(formData, []); // 게시판은 대화 이력이 없으므로 빈 배열
+            .sendInquiryTyped({ type: ctType, name: name, contact: contact, summary: summary, items: items });
     }
 
-    // 개인정보동의 버튼 이벤트 바인딩 (DOM 로드 후)
+    // 개인정보동의·문의 유형 선택 이벤트 바인딩 (DOM 로드 후)
     document.addEventListener('DOMContentLoaded', () => {
         setupChatScrollIsolation();
         const cy = document.getElementById('consent-yes');
@@ -649,6 +727,22 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
         if (cn) cn.onclick = () => {
             alert("개인정보 수집에 동의하셔야 문의 접수가 가능합니다.");
         };
+        document.querySelectorAll('#contact-form [data-type]').forEach(function (b) {
+            b.addEventListener('click', function () { ctShow(b.getAttribute('data-type')); });
+        });
+        const back = document.getElementById('ct-back');
+        if (back) back.addEventListener('click', function () { ctShow(null); });
+        const form = document.getElementById('contact-form');
+        if (form) form.addEventListener('click', function (ev) {
+            const chip = ev.target.closest ? ev.target.closest('.ct-chip') : null;
+            if (!chip) return;
+            const on = !chip.classList.contains('on');
+            if (chip.parentNode.classList.contains('ct-single')) {
+                chip.parentNode.querySelectorAll('.ct-chip').forEach(function (c) { c.classList.remove('on'); c.setAttribute('aria-pressed', 'false'); });
+            }
+            chip.classList.toggle('on', on);
+            chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
     });
 
 

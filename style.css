@@ -906,3 +906,32 @@
     #s4 .chart-m { display: block; width: 100%; height: 100%; max-height: 100%; }
     #s4 .chart-m text { font-size: 21px; }
   }
+
+/* ===== 문의하기: 유형 선택 + 유형별 양식 ===== */
+#contact-form input[type="date"] { color-scheme: dark; }
+.ct-lead { margin: 0 0 14px; font-weight: 800; font-size: 1.05rem; letter-spacing: -.02em; }
+.ct-types { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ct-type { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; padding: 18px 16px; border: 1px solid var(--line-2); border-radius: 2px; background: rgba(244,244,240,.04); color: var(--fg); cursor: pointer; transition: .2s; }
+.ct-type:hover, .ct-type:focus-visible { border-color: var(--lime); background: rgba(195,244,0,.08); transform: translateY(-2px); }
+.ct-type .ct-ico { font-size: 26px; line-height: 1; }
+.ct-type b { font-size: 1rem; font-weight: 800; letter-spacing: -.02em; }
+.ct-type small { font-size: .78rem; color: var(--fg-40); line-height: 1.4; }
+.ct-other-link { display: block; margin: 16px auto 0; padding: 6px 4px; font-size: .85rem; color: var(--fg-40); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.ct-other-link:hover { color: var(--lime); }
+.ct-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.ct-back { font-size: .85rem; color: var(--fg-40); cursor: pointer; padding: 4px 0; }
+.ct-back:hover { color: var(--lime); }
+.ct-typename { font-weight: 800; font-size: .92rem; }
+.ct-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ct-check { display: flex !important; align-items: center; gap: 8px; margin: 8px 0 0 !important; font-size: .85rem !important; color: var(--fg) !important; cursor: pointer; }
+.ct-check input { accent-color: var(--lime); width: 16px; height: 16px; }
+.ct-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ct-chip { padding: 8px 14px; border: 1px solid var(--line-2); border-radius: 999px; font-size: .85rem; font-weight: 600; color: var(--fg); background: transparent; cursor: pointer; transition: .15s; line-height: 1.2; }
+.ct-chip:hover { border-color: var(--lime); }
+.ct-chip.on { background: var(--lime); border-color: var(--lime); color: #111; font-weight: 800; }
+.ct-small .ct-chip { padding: 6px 11px; font-size: .78rem; }
+.ct-custom { border-style: dashed; }
+.ct-small { max-height: 190px; overflow-y: auto; padding: 2px; }
+@media (max-width: 520px) {
+  .ct-types, .ct-row2 { grid-template-columns: 1fr; }
+}

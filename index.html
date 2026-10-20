@@ -327,50 +327,151 @@
 
     <!-- Contact Modal -->
     <div id="contact-modal" class="modal-overlay">
-        <div class="modal-container" style="max-width: 500px;">
+        <div class="modal-container" style="max-width: 560px;">
             <div class="modal-header">
                 <h3 data-i18n="contact_title">Contact Us</h3>
                 <button class="close-btn" onclick="closeModal('contact-modal')">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="contact-form" onsubmit="submitContact(event)">
-                    <div class="form-group">
-                        <label for="contact-title" data-i18n="form_subject">제목</label>
-                        <input type="text" id="contact-title" class="form-input" required placeholder="문의 제목을 입력해 주세요">
-                    </div>
-                    <div class="form-group">
-                        <label for="contact-name">성함 / 소속</label>
-                        <input type="text" id="contact-name" class="form-input" required placeholder="홍길동 / ○○복지관">
-                    </div>
-                    <div class="form-group">
-                        <label for="contact-contact" data-i18n="form_contact">기관전화번호 / 연락처</label>
-                        <input type="text" id="contact-contact" class="form-input" required
-                            placeholder="02-123-4567 (기관전화번호 우선 권장)">
-                    </div>
-                    <div class="form-group">
-                        <label for="contact-content" data-i18n="form_message">문의내용</label>
-                        <textarea id="contact-content" class="form-input" rows="5" required
-                            placeholder="문의하실 내용을 자유롭게 적어 주세요."></textarea>
+                <form id="contact-form" onsubmit="submitContact(event)" novalidate>
+                    <!-- 1단계: 문의 유형 선택 -->
+                    <div id="ct-pick">
+                        <p class="ct-lead" data-ct="lead">어떤 문의이신가요?</p>
+                        <div class="ct-types">
+                            <button type="button" class="ct-type" data-type="lecture">
+                                <span class="ct-ico">🎤</span><b data-ct="t_lecture">강의·출강 의뢰</b><small data-ct="t_lecture_s">AI·스마트워크·사무자동화 강의</small>
+                            </button>
+                            <button type="button" class="ct-type" data-type="platform">
+                                <span class="ct-ico">🛠</span><b data-ct="t_platform">플랫폼·솔루션 개발 문의</b><small data-ct="t_platform_s">만들어진 솔루션 도입·맞춤 개발</small>
+                            </button>
+                        </div>
+                        <button type="button" class="ct-other-link" data-type="other" data-ct="t_other">그 밖의 문의는 여기에서</button>
                     </div>
 
-                    <!-- 개인정보 동의 영역 -->
-                    <div id="contact-consent-area" class="consent-area">
-                        <div class="consent-title">🔒 개인정보 수집 및 이용 동의</div>
-                        <div class="consent-desc">
-                            문의 확인 및 회신을 위해 성함, 소속, 기관전화번호를 수집합니다.<br>
-                            수집된 정보는 해당 문의 처리 목적으로만 사용됩니다. 동의하시나요?
-                        </div>
-                        <div class="consent-buttons">
-                            <button type="button" id="consent-yes" class="consent-btn consent-btn-agree">✅ 동의함</button>
-                            <button type="button" id="consent-no" class="consent-btn consent-btn-disagree">❌
-                                동의안함</button>
-                        </div>
-                        <input type="hidden" id="contact-consent-hidden" value="false">
-                    </div>
+                    <!-- 2단계: 유형별 양식 -->
+                    <div id="ct-body" style="display:none;">
+                        <div class="ct-bar"><button type="button" id="ct-back" class="ct-back" data-ct="back">← 유형 다시 선택</button><span id="ct-typename" class="ct-typename"></span></div>
 
-                    <button type="submit" id="contact-submit-btn" class="btn btn-primary"
-                        style="width:100%; display: none;" data-i18n="form_submit">📨 문의하기 전송</button>
-                    <div id="contact-status" style="margin-top:10px; font-size:0.9rem; text-align:center;"></div>
+                        <div class="ct-pane" data-pane="lecture" style="display:none;">
+                            <div class="form-group">
+                                <label data-ct="l_date">희망 일자 (1순위 / 2순위)</label>
+                                <div class="ct-row2">
+                                    <input type="date" id="ct-date1" class="form-input" aria-label="1순위">
+                                    <input type="date" id="ct-date2" class="form-input" aria-label="2순위">
+                                </div>
+                                <label class="ct-check"><input type="checkbox" id="ct-dateflex"> <span data-ct="l_flex">날짜는 협의 가능합니다</span></label>
+                            </div>
+                            <div class="form-group">
+                                <label data-ct="l_target">대상 (복수 선택)</label>
+                                <div class="ct-chips" id="ct-target">
+                                    <button type="button" class="ct-chip" data-v="사회복지사" data-ct="c_swk">사회복지사</button>
+                                    <button type="button" class="ct-chip" data-v="시설장·관리자" data-ct="c_mgr">시설장·관리자</button>
+                                    <button type="button" class="ct-chip" data-v="일반 직원" data-ct="c_staff">일반 직원</button>
+                                    <button type="button" class="ct-chip" data-v="기타" data-ct="c_etc">기타</button>
+                                </div>
+                            </div>
+                            <div class="ct-row2">
+                                <div class="form-group">
+                                    <label for="ct-count" data-ct="l_count">인원 (명)</label>
+                                    <input type="number" min="1" id="ct-count" class="form-input" placeholder="30">
+                                </div>
+                                <div class="form-group">
+                                    <label for="ct-region" data-ct="l_region">지역</label>
+                                    <input type="text" id="ct-region" class="form-input" data-ctp="p_region" placeholder="예: 대전 서구">
+                                </div>
+                            </div>
+                            <label class="ct-check" style="margin-top:-6px;"><input type="checkbox" id="ct-online"> <span data-ct="l_online">온라인 강의도 가능합니다</span></label>
+                            <div class="form-group" style="margin-top:14px;">
+                                <label data-ct="l_hours">강의 시간</label>
+                                <div class="ct-chips ct-single" id="ct-hours">
+                                    <button type="button" class="ct-chip" data-v="1시간" data-ct="h1">1시간</button>
+                                    <button type="button" class="ct-chip" data-v="2시간" data-ct="h2">2시간</button>
+                                    <button type="button" class="ct-chip" data-v="반일(약 4시간)" data-ct="h4">반일(약 4시간)</button>
+                                    <button type="button" class="ct-chip" data-v="종일" data-ct="h8">종일</button>
+                                    <button type="button" class="ct-chip" data-v="협의" data-ct="hx">협의</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label data-ct="l_topic">주제 (복수 선택)</label>
+                                <div class="ct-chips" id="ct-topic">
+                                    <button type="button" class="ct-chip" data-v="AI 활용" data-ct="s_ai">AI 활용</button>
+                                    <button type="button" class="ct-chip" data-v="스마트워크" data-ct="s_sw">스마트워크</button>
+                                    <button type="button" class="ct-chip" data-v="사무자동화" data-ct="s_auto">사무자동화</button>
+                                    <button type="button" class="ct-chip" data-v="바이브코딩" data-ct="s_vibe">바이브코딩</button>
+                                    <button type="button" class="ct-chip" data-v="기타" data-ct="s_etc">기타</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="ct-lnote" data-ct="l_note">추가 요청사항 (선택)</label>
+                                <textarea id="ct-lnote" class="form-input" rows="3" data-ctp="p_lnote" placeholder="강의 목적, 교육생 수준, 요청 내용 등을 자유롭게 적어 주세요."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="ct-pane" data-pane="platform" style="display:none;">
+                            <div class="form-group">
+                                <label data-ct="p_sol">관심 있는 솔루션 (복수 선택)</label>
+                                <div class="ct-chips ct-small" id="ct-sols"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="ct-pneed" data-ct="p_need">원하시는 내용</label>
+                                <textarea id="ct-pneed" class="form-input" rows="4" data-ctp="p_pneed" placeholder="어떤 업무를 자동화하고 싶으신가요? 지금은 어떻게 처리하고 계신가요?"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="ct-pwhen" data-ct="p_when">희망 시기 (선택)</label>
+                                <input type="text" id="ct-pwhen" class="form-input" data-ctp="p_pwhen" placeholder="예: 내년 상반기, 가능한 빨리">
+                            </div>
+                            <div class="form-group">
+                                <label data-ct="p_budget">예산 규모 (선택)</label>
+                                <div class="ct-chips ct-single" id="ct-budget">
+                                    <button type="button" class="ct-chip" data-v="미정·협의" data-ct="b0">미정·협의</button>
+                                    <button type="button" class="ct-chip" data-v="500만원 미만" data-ct="b1">500만원 미만</button>
+                                    <button type="button" class="ct-chip" data-v="500~1,500만원" data-ct="b2">500~1,500만원</button>
+                                    <button type="button" class="ct-chip" data-v="1,500만원 이상" data-ct="b3">1,500만원 이상</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ct-pane" data-pane="other" style="display:none;">
+                            <div class="form-group">
+                                <label for="contact-title" data-i18n="form_subject">제목</label>
+                                <input type="text" id="contact-title" class="form-input" placeholder="문의 제목을 입력해 주세요">
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-content" data-i18n="form_message">문의내용</label>
+                                <textarea id="contact-content" class="form-input" rows="5"
+                                    placeholder="문의하실 내용을 자유롭게 적어 주세요."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contact-name" data-ct="f_name">성함 / 소속</label>
+                            <input type="text" id="contact-name" class="form-input" placeholder="홍길동 / ○○복지관">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-contact" data-i18n="form_contact">기관전화번호 / 연락처</label>
+                            <input type="text" id="contact-contact" class="form-input"
+                                placeholder="02-123-4567 (기관전화번호 우선 권장)">
+                        </div>
+
+                        <!-- 개인정보 동의 영역 -->
+                        <div id="contact-consent-area" class="consent-area">
+                            <div class="consent-title">🔒 개인정보 수집 및 이용 동의</div>
+                            <div class="consent-desc">
+                                문의 확인 및 회신을 위해 성함, 소속, 기관전화번호를 수집합니다.<br>
+                                수집된 정보는 해당 문의 처리 목적으로만 사용됩니다. 동의하시나요?
+                            </div>
+                            <div class="consent-buttons">
+                                <button type="button" id="consent-yes" class="consent-btn consent-btn-agree">✅ 동의함</button>
+                                <button type="button" id="consent-no" class="consent-btn consent-btn-disagree">❌
+                                    동의안함</button>
+                            </div>
+                            <input type="hidden" id="contact-consent-hidden" value="false">
+                        </div>
+
+                        <button type="submit" id="contact-submit-btn" class="btn btn-primary"
+                            style="width:100%; display: none;" data-i18n="form_submit">📨 문의하기 전송</button>
+                        <div id="contact-status" style="margin-top:10px; font-size:0.9rem; text-align:center;"></div>
+                    </div>
                 </form>
             </div>
         </div>
