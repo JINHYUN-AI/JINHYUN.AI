@@ -584,7 +584,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
         l_date: 'Preferred date (1st / 2nd choice)', l_flex: 'Date is negotiable', l_target: 'Audience (multiple)', c_swk: 'Social workers', c_mgr: 'Managers', c_staff: 'General staff', c_etc: 'Other',
         l_count: 'Participants', l_region: 'Region (if offline)', p_region: 'e.g. Daejeon', l_mode: 'Format', m_off: 'Offline (in person)', m_on: 'Online', l_hours: 'Duration per day',
         hrs_hint: 'Online: from 1 hour. Offline: 3 hours or more.',
-        l_topic: 'Topic (multiple)', s_ai: 'Using AI', s_sw: 'Smart work', s_auto: 'Office automation', s_vibe: 'Vibe coding', s_etc: 'Other',
+        l_topic: 'Topic (multiple)', s_ai: 'Using AI', s_sw: 'Smart work', s_auto: 'Office automation', s_vibe: 'Vibe coding', s_eval: 'Facility evaluation', s_case: 'Case management', s_etc: 'Other',
         l_note: 'Additional requests (optional)', p_lnote: 'Purpose, trainee level, anything else.',
         p_sol: 'Solutions of interest (multiple)', p_need: 'What do you need?', p_pneed: 'Which work would you like to automate? How is it handled now?',
         p_when: 'Desired timing (optional)', p_pwhen: 'e.g. first half of next year', p_budget: 'Budget range (optional)',
