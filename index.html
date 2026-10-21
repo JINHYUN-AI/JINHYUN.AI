@@ -84,7 +84,6 @@
         <a href="#" data-go="0" data-t="nav_home">홈</a>
         <a href="#" data-go="1" data-t="nav_sol">솔루션</a>
         <a href="#" data-go="2" data-t="nav_prof">이력·기술</a>
-        <a href="#" id="nav-pf" data-t="nav_pf" onclick="openProfileDownload(event)">프로파일 받기</a>
         <a href="#" data-go="3" data-t="nav_hum">휴머니즘</a>
       </nav>
       <span class="lang"><button id="lang-kr" class="lg on" type="button">KR</button> | <button id="lang-en" class="lg" type="button">EN</button></span>
@@ -253,7 +252,7 @@
       <div class="wrap gs">
         <div class="chapter" style="--n:2">
           <span class="ch-name">PROFILE</span>
-          <ol class="ch-steps"><li><button type="button" data-step="0" class="on"><i>01</i><span data-t="st_prof">이력</span></button></li><li><button type="button" data-step="1" class=""><i>02</i><span data-t="st_tech">기술</span></button></li></ol>
+          <ol class="ch-steps" style="--n:3"><li><button type="button" data-step="0" class="on"><i>01</i><span data-t="st_prof">이력</span></button></li><li><button type="button" data-step="1" class=""><i>02</i><span data-t="st_tech">기술</span></button></li><li><button type="button" id="pf-tab" onclick="openProfileDownload(event)"><i>03</i><span data-t="nav_pfq">프로파일</span></button></li></ol>
           <span class="ch-pos">1/2</span>
         </div>
         <div class="panel on" id="s5b" data-theme="dark">        <div class="ghead">
@@ -302,7 +301,6 @@
     <button type="button" data-go="0" data-q="0" data-t="nav_home">홈</button>
     <button type="button" data-go="1" data-q="1" data-t="nav_sol">솔루션</button>
     <button type="button" data-go="2" data-q="2" data-t="nav_prof">이력·기술</button>
-    <button type="button" data-t="nav_pfq" onclick="openProfileDownload(event)">프로파일</button>
     <button type="button" data-go="3" data-q="3" data-t="nav_hum">휴머니즘</button>
   </nav>
 
