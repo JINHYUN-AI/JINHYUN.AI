@@ -978,3 +978,6 @@
 .pf-code-box { padding: 14px; border: 1px solid var(--lime); border-radius: 2px; background: rgba(195,244,0,.06); }
 .pf-code-val { font: 800 2rem/1.2 var(--f-mono); letter-spacing: .18em; color: var(--lime); }
 #pf-code { text-transform: uppercase; letter-spacing: .2em; font-family: var(--f-mono); text-align: center; }
+
+/* 프로파일 받기·관리자 버튼 글자 가운데 정렬 */
+#pf-pw-modal .btn, #pf-admin .btn, #admin-login-modal .btn, .pf-bar .btn { justify-content: center; text-align: center; }

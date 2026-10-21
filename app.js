@@ -530,7 +530,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
     slides.forEach(function (s, k) { if (k !== i) { s.classList.remove('in'); (s._panels || []).forEach(function (pn) { pn.classList.remove('in'); $$('.card.ready', pn).forEach(function (c) { c.classList.remove('ready'); }); }); } });
     var s = slides[i];
     if (s._panels.length) {
-      var sp = pendingPanel != null ? pendingPanel : (first ? 0 : (prev > i ? s._panels.length - 1 : 0)); pendingPanel = null;
+      var sp = pendingPanel != null ? pendingPanel : 0; pendingPanel = null;
       setPanel(i, sp); s._panels[s._p].classList.add('in');
       frame.classList.toggle('light', s.classList.contains('light'));
     } else { s.classList.add('in'); frame.classList.toggle('light', s.classList.contains('light')); runCounts(); }
