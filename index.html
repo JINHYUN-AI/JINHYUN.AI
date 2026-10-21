@@ -84,6 +84,7 @@
         <a href="#" data-go="0" data-t="nav_home">홈</a>
         <a href="#" data-go="1" data-t="nav_sol">솔루션</a>
         <a href="#" data-go="2" data-t="nav_prof">이력·기술</a>
+        <a href="#" id="nav-pf" data-t="nav_pf" onclick="openProfileDownload(event)">프로파일 받기</a>
         <a href="#" data-go="3" data-t="nav_hum">휴머니즘</a>
       </nav>
       <span class="lang"><button id="lang-kr" class="lg on" type="button">KR</button> | <button id="lang-en" class="lg" type="button">EN</button></span>
@@ -301,6 +302,7 @@
     <button type="button" data-go="0" data-q="0" data-t="nav_home">홈</button>
     <button type="button" data-go="1" data-q="1" data-t="nav_sol">솔루션</button>
     <button type="button" data-go="2" data-q="2" data-t="nav_prof">이력·기술</button>
+    <button type="button" data-t="nav_pfq" onclick="openProfileDownload(event)">프로파일</button>
     <button type="button" data-go="3" data-q="3" data-t="nav_hum">휴머니즘</button>
   </nav>
 
@@ -530,6 +532,33 @@
         </div>
     </div>
 
+    <!-- 프로파일 받기: 임시 비밀번호 입력 -->
+    <div id="pf-pw-modal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 420px;">
+            <div class="modal-header">
+                <h3>프로파일 받기</h3>
+                <button class="close-btn" type="button" onclick="closeModal('pf-pw-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 15px; font-size: 0.9rem; color: var(--mantine-color-dark-2);">협의 후 안내드린 임시 비밀번호를 입력해 주세요. (발급 후 24시간, 최대 3회)</p>
+                <input type="text" id="pf-code" class="form-input" placeholder="XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false"
+                    onkeypress="if(event.key==='Enter') submitProfileCode()">
+                <button class="btn btn-primary" id="pf-submit" type="button" style="width: 100%; margin-top: 15px;" onclick="submitProfileCode()">프로파일 열기</button>
+                <div id="pf-status" style="margin-top: 10px; text-align: center; font-size: 0.85rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 프로파일 열람 화면 (6번 프로파일 양식 그대로, PDF 저장) -->
+    <div id="pf-viewer" class="pf-viewer">
+        <div class="pf-bar">
+            <span id="pf-viewer-info" class="pf-info"></span>
+            <button class="btn btn-primary" type="button" onclick="printProfileDoc()">PDF로 저장 / 인쇄</button>
+            <button class="btn sm" type="button" onclick="closeProfileViewer()">닫기 ✕</button>
+        </div>
+        <iframe id="pf-frame" class="pf-frame" title="Profile" sandbox="allow-same-origin allow-modals allow-popups"></iframe>
+    </div>
+
     <!-- Admin Login Modal -->
     <div id="admin-login-modal" class="modal-overlay">
         <div class="modal-container" style="max-width: 400px;">
@@ -582,6 +611,17 @@
                             <div style="font-size: 0.85rem; color: var(--mantine-color-dark-2);">-</div>
                         </div>
                     </div>
+                </div>
+
+                <!-- 프로파일 받기 임시 비밀번호 (관리자 전용) -->
+                <div class="dashboard-section" id="pf-admin" style="margin-bottom: 20px;">
+                    <h4>🔑 프로파일 받기 임시 비밀번호 (24시간 · 최대 3회)</h4>
+                    <div class="pf-admin-row">
+                        <input type="text" id="pf-org" class="form-input" placeholder="기관명 (예: ○○종합사회복지관)" autocomplete="off">
+                        <button class="btn btn-primary" type="button" onclick="pfAdminCreate()">새 비밀번호 생성</button>
+                    </div>
+                    <div id="pf-admin-result" style="margin-top: 12px;"></div>
+                    <div id="pf-admin-status" style="margin-top: 12px; font-size: 0.85rem;"></div>
                 </div>
 
                 <div class="dashboard-content-grid">
@@ -654,6 +694,7 @@
 
     <script src="gas-bridge.js"></script>
     <script src="app.js"></script>
+    <script src="profile-doc.js"></script>
 </body>
 
 </html>
