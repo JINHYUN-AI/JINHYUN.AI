@@ -690,7 +690,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
         } else if (ctType === 'platform') {
             const sols = ctPicked('ct-sols'), need = ctVal('ct-pneed');
             if (!need) return fail(ctT('원하시는 내용을 적어 주세요.', 'Please describe what you need.'));
-            items = [['관심 솔루션', sols.join(', ')], ['원하시는 내용', need], ['희망 시기', ctVal('ct-pwhen')], ['예산 규모', ctPicked('ct-budget')[0] || '']];
+            items = [['관심 솔루션', sols.join(', ')], ['원하시는 내용', need], ['희망 시기', ctVal('ct-pwhen')]];
             summary = sols.length ? sols.join(', ') : '솔루션 미선택';
         } else {
             const title = ctVal('contact-title'), content = ctVal('contact-content');
