@@ -2,7 +2,34 @@
 (function () {
     const API_URL = 'https://script.google.com/macros/s/AKfycbx3SxdxK70zS4VDrMbwPWivtb5l89yX3EsIDCX_OB0-9P4zAtzWy1-Yx7AqRApUE97QLA/exec';
 
+    // 공개 읽기 데이터는 파이어스토어 복사본(구글 시트 동기화)에서 먼저 읽고, 실패하면 아래 GAS 호출로 자동 전환한다.
+    const FS_BASE = 'https://firestore.googleapis.com/v1/projects/jinhyun-ai/databases/(default)/documents/cache/';
+    const FS_FUNCS = ['getAboutWeek', 'getAboutData', 'getSystemData', 'getTools', 'getFooterData', 'getMetricsData', 'getProfileData', 'getPromoData'];
+
+    function callFirestore(fn, args) {
+        const L = (args && args[0]) || '-';
+        const ctl = ('AbortController' in window) ? new AbortController() : null;
+        const timer = ctl ? setTimeout(function () { ctl.abort(); }, 3000) : null;
+        return fetch(FS_BASE + encodeURIComponent(fn + '_' + L), ctl ? { signal: ctl.signal } : undefined)
+            .then(function (r) { if (!r.ok) throw new Error('Firestore ' + r.status); return r.json(); })
+            .then(function (d) {
+                if (timer) clearTimeout(timer);
+                const j = d && d.fields && d.fields.json && d.fields.json.stringValue;
+                if (typeof j !== 'string') throw new Error('Firestore 문서 형식 오류');
+                return JSON.parse(j);
+            }, function (e) { if (timer) clearTimeout(timer); throw e; });
+    }
+
     function call(fn, args, onOk, onFail) {
+        if (FS_FUNCS.indexOf(fn) !== -1) {
+            callFirestore(fn, args).then(function (result) { if (onOk) onOk(result); })
+                .catch(function () { callGas(fn, args, onOk, onFail); });
+            return;
+        }
+        callGas(fn, args, onOk, onFail);
+    }
+
+    function callGas(fn, args, onOk, onFail) {
         fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
