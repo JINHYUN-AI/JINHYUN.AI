@@ -344,8 +344,10 @@
                             <button type="button" class="ct-type" data-type="platform">
                                 <span class="ct-ico">🛠</span><b data-ct="t_platform">플랫폼·솔루션 개발 문의</b><small data-ct="t_platform_s">만들어진 솔루션 도입·맞춤 개발</small>
                             </button>
+                            <button type="button" class="ct-type ct-type-free" data-type="other">
+                                <span class="ct-ico">💬</span><b data-ct="t_other">자유 문의</b><small data-ct="t_other_s">궁금한 점을 편하게 남겨 주세요</small>
+                            </button>
                         </div>
-                        <button type="button" class="ct-other-link" data-type="other" data-ct="t_other">그 밖의 문의는 여기에서</button>
                     </div>
 
                     <!-- 2단계: 유형별 양식 -->
@@ -431,13 +433,9 @@
 
                         <div class="ct-pane" data-pane="other" style="display:none;">
                             <div class="form-group">
-                                <label for="contact-title" data-i18n="form_subject">제목</label>
-                                <input type="text" id="contact-title" class="form-input" placeholder="문의 제목을 입력해 주세요">
-                            </div>
-                            <div class="form-group">
-                                <label for="contact-content" data-i18n="form_message">문의내용</label>
-                                <textarea id="contact-content" class="form-input" rows="5"
-                                    placeholder="문의하실 내용을 자유롭게 적어 주세요."></textarea>
+                                <label for="contact-content" data-ct="l_free">궁금하신 점</label>
+                                <textarea id="contact-content" class="form-input" rows="6" maxlength="3000" data-ctp="p_free"
+                                    placeholder="궁금하신 점을 편하게 적어 주세요."></textarea>
                             </div>
                         </div>
 

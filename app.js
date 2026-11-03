@@ -576,11 +576,11 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
         document.getElementById(id).classList.remove('open');
     }
 
-    // Contact Modal (문의 유형별 양식: 강의 의뢰 / 플랫폼 개발 / 기타)
+    // Contact Modal (문의 유형별 양식: 강의 의뢰 / 플랫폼 개발 / 자유 문의)
     var ctType = null;
     var CT_EN = {
         lead: 'What would you like to ask about?', t_lecture: 'Lecture request', t_lecture_s: 'AI · smart work · office automation',
-        t_platform: 'Platform / solution inquiry', t_platform_s: 'Adopt a built solution or custom development', t_other: 'Other inquiries here', back: '← Change type',
+        t_platform: 'Platform / solution inquiry', t_platform_s: 'Adopt a built solution or custom development', t_other: 'Free question', t_other_s: 'Ask anything you are curious about', l_free: 'Your question', p_free: 'Write your question freely.', back: '← Change type',
         l_date: 'Preferred date (1st / 2nd choice)', l_flex: 'Date is negotiable', l_target: 'Audience (multiple)', c_swk: 'Social workers', c_mgr: 'Managers', c_staff: 'General staff', c_etc: 'Other',
         l_count: 'Participants', l_region: 'Region (if offline)', p_region: 'e.g. Daejeon', l_mode: 'Format', m_off: 'Offline (in person)', m_on: 'Online', l_hours: 'Duration per day',
         hrs_hint: 'Online: from 1 hour. Offline: 3 hours or more.',
@@ -622,7 +622,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
         document.getElementById('ct-pick').style.display = type ? 'none' : 'block';
         document.getElementById('ct-body').style.display = type ? 'block' : 'none';
         document.querySelectorAll('#contact-form .ct-pane').forEach(function (p) { p.style.display = (p.getAttribute('data-pane') === type) ? 'block' : 'none'; });
-        var names = { lecture: ctT('🎤 강의·출강 의뢰', '🎤 Lecture request'), platform: ctT('🛠 플랫폼·솔루션 개발 문의', '🛠 Platform inquiry'), other: ctT('💬 그 밖의 문의', '💬 Other inquiry') };
+        var names = { lecture: ctT('🎤 강의·출강 의뢰', '🎤 Lecture request'), platform: ctT('🛠 플랫폼·솔루션 개발 문의', '🛠 Platform inquiry'), other: ctT('💬 자유 문의', '💬 Free question') };
         document.getElementById('ct-typename').textContent = type ? names[type] : '';
         if (type === 'platform') ctBuildSols();
         document.getElementById('contact-status').innerText = '';
@@ -693,10 +693,11 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
             items = [['관심 솔루션', sols.join(', ')], ['원하시는 내용', need], ['희망 시기', ctVal('ct-pwhen')]];
             summary = sols.length ? sols.join(', ') : '솔루션 미선택';
         } else {
-            const title = ctVal('contact-title'), content = ctVal('contact-content');
-            if (!title || !content) return fail(ctT('제목과 문의내용을 입력해 주세요.', 'Please enter a subject and message.'));
-            items = [['제목', title], ['문의내용', content]];
-            summary = title;
+            const content = ctVal('contact-content');
+            if (!content) return fail(ctT('궁금하신 내용을 적어 주세요.', 'Please write your question.'));
+            items = [['질문', content]];
+            const oneLine = content.replace(/\s+/g, ' ');
+            summary = oneLine.length > 40 ? oneLine.slice(0, 40) + '…' : oneLine;
         }
         if (!name || !contact) return fail(ctT('성함/소속과 연락처를 입력해 주세요.', 'Please enter your name and contact.'));
 
