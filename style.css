@@ -910,14 +910,12 @@
 /* ===== 문의하기: 유형 선택 + 유형별 양식 ===== */
 #contact-form input[type="date"] { color-scheme: dark; }
 .ct-lead { margin: 0 0 14px; font-weight: 800; font-size: 1.05rem; letter-spacing: -.02em; }
-.ct-types { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.ct-type { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; padding: 18px 16px; border: 1px solid var(--line-2); border-radius: 2px; background: rgba(244,244,240,.04); color: var(--fg); cursor: pointer; transition: .2s; }
+.ct-types { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.ct-type { display: grid; grid-template-columns: 32px 1fr; column-gap: 14px; row-gap: 2px; align-items: center; text-align: left; padding: 14px 16px; border: 1px solid var(--line-2); border-radius: 2px; background: rgba(244,244,240,.04); color: var(--fg); cursor: pointer; transition: .2s; }
 .ct-type:hover, .ct-type:focus-visible { border-color: var(--lime); background: rgba(195,244,0,.08); transform: translateY(-2px); }
-.ct-type .ct-ico { font-size: 26px; line-height: 1; }
+.ct-type .ct-ico { grid-row: 1 / span 2; font-size: 26px; line-height: 1; text-align: center; }
 .ct-type b { font-size: 1rem; font-weight: 800; letter-spacing: -.02em; }
 .ct-type small { font-size: .78rem; color: var(--fg-40); line-height: 1.4; }
-.ct-type-free { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr; column-gap: 14px; row-gap: 2px; align-items: center; padding: 14px 16px; }
-.ct-type-free .ct-ico { grid-row: 1 / span 2; }
 .ct-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
 .ct-back { font-size: .85rem; color: var(--fg-40); cursor: pointer; padding: 4px 0; }
 .ct-back:hover { color: var(--lime); }
@@ -933,7 +931,7 @@
 .ct-custom { border-style: dashed; }
 .ct-small { max-height: 190px; overflow-y: auto; padding: 2px; }
 @media (max-width: 520px) {
-  .ct-types, .ct-row2 { grid-template-columns: 1fr; }
+  .ct-row2 { grid-template-columns: 1fr; }
 }
 
 /* 문의하기: 선택 칩은 둥글지 않은 박스형(입력창과 같은 모양) + 강의 시간 막대 */
