@@ -1317,3 +1317,102 @@ document.addEventListener('click', function (e) {
     toggleChat();
   }
 });
+
+// ===== AS 접수 (이메일 링크 인증 → 설치 솔루션 목록) =====
+// 백엔드: AsService.gs (requestLoginLink / verifyLoginLink / getMyOrgSolutions)
+var asSession = null;
+function asSetStatus(id, msg, ok) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg || '';
+    el.style.color = ok ? '' : '#fa5252';
+}
+function asShowRequest() {
+    document.getElementById('as-step-request').style.display = 'block';
+    document.getElementById('as-step-panel').style.display = 'none';
+}
+function openAsModal(e) {
+    if (e) e.preventDefault();
+    closeModal('contact-modal');
+    if (!asSession) asShowRequest();
+    document.getElementById('as-modal').classList.add('open');
+}
+function asRequestLink(e) {
+    e.preventDefault();
+    var uno = document.getElementById('as-uno').value.trim();
+    var mail = document.getElementById('as-email').value.trim();
+    var btn = document.getElementById('as-send-btn');
+    btn.disabled = true;
+    asSetStatus('as-status', '처리 중입니다...', true);
+    google.script.run
+        .withSuccessHandler(function (r) {
+            btn.disabled = false;
+            if (r && r.ok) asSetStatus('as-status', r.message, true);
+            else asSetStatus('as-status', (r && r.message) || '요청을 처리하지 못했습니다.', false);
+        })
+        .withFailureHandler(function (err) {
+            btn.disabled = false;
+            asSetStatus('as-status', '연결 오류: ' + (err && err.message ? err.message : err), false);
+        })
+        .requestLoginLink(uno, mail);
+}
+function asHandleToken() {
+    var m = (window.location.hash || '').match(/#as_token=([0-9a-fA-F]{64})$/);
+    if (!m) return;
+    // 링크의 토큰을 주소창에서 바로 지운다 (기록에 남지 않도록)
+    try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (err) {}
+    document.getElementById('as-modal').classList.add('open');
+    asShowRequest();
+    asSetStatus('as-status', '인증 확인 중입니다...', true);
+    google.script.run
+        .withSuccessHandler(function (r) {
+            if (r && r.ok) {
+                asSession = r.session;
+                asLoadInstalls();
+            } else {
+                asSetStatus('as-status', (r && r.message) || '인증에 실패했습니다.', false);
+            }
+        })
+        .withFailureHandler(function (err) {
+            asSetStatus('as-status', '연결 오류: ' + (err && err.message ? err.message : err), false);
+        })
+        .verifyLoginLink(m[1]);
+}
+function asLoadInstalls() {
+    google.script.run
+        .withSuccessHandler(function (r) {
+            if (!r || !r.ok) {
+                asSession = null;
+                asShowRequest();
+                asSetStatus('as-status', (r && r.message) || '세션을 열 수 없습니다.', false);
+                return;
+            }
+            document.getElementById('as-step-request').style.display = 'none';
+            document.getElementById('as-step-panel').style.display = 'block';
+            document.getElementById('as-org').textContent = r.orgName + ' · 설치 솔루션';
+            var list = document.getElementById('as-installs');
+            list.innerHTML = '';
+            if (!r.installs.length) {
+                var empty = document.createElement('li');
+                empty.textContent = '등록된 설치 내역이 없습니다.';
+                list.appendChild(empty);
+            }
+            r.installs.forEach(function (x) {
+                var li = document.createElement('li');
+                li.style.cssText = 'padding:10px 0;border-bottom:1px solid rgba(128,128,128,0.25);';
+                var t = document.createElement('b');
+                t.textContent = x.solution;
+                var d = document.createElement('div');
+                d.style.cssText = 'font-size:13px;opacity:0.75;margin-top:2px;';
+                d.textContent = x.installedAt + (x.note ? ' · ' + x.note : '');
+                li.appendChild(t);
+                li.appendChild(d);
+                list.appendChild(li);
+            });
+        })
+        .withFailureHandler(function (err) {
+            asSetStatus('as-status', '연결 오류: ' + (err && err.message ? err.message : err), false);
+        })
+        .getMyOrgSolutions(asSession);
+}
+window.addEventListener('load', asHandleToken);

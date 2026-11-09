@@ -326,6 +326,39 @@
 </div>
 
     <!-- Contact Modal -->
+    <!-- AS 접수: 이메일 링크 인증 후 설치 솔루션 목록 -->
+    <div id="as-modal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 560px;">
+            <div class="modal-header">
+                <h3>AS 접수</h3>
+                <button class="close-btn" onclick="closeModal('as-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="as-step-request">
+                    <p style="margin-top:0;">기관 고유번호와 등록된 관리자 이메일을 입력하면, 메일로 로그인 링크를 보내 드립니다.</p>
+                    <form id="as-form" onsubmit="asRequestLink(event)" novalidate>
+                        <div class="form-group">
+                            <label for="as-uno">기관 고유번호</label>
+                            <input id="as-uno" class="form-input" placeholder="000-00-00000" maxlength="14" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="as-email">관리자 이메일</label>
+                            <input id="as-email" type="email" class="form-input" placeholder="name@organization.kr" maxlength="254" autocomplete="email">
+                        </div>
+                        <button id="as-send-btn" type="submit" class="btn lime sm">인증 링크 보내기</button>
+                        <p id="as-status" style="margin-top:12px;font-size:14px;"></p>
+                    </form>
+                </div>
+                <div id="as-step-panel" style="display:none;">
+                    <h4 id="as-org" style="margin:0 0 6px;"></h4>
+                    <p style="margin:0 0 12px;font-size:14px;">설치하신 솔루션 목록입니다. 세션은 30분 동안 유지됩니다.</p>
+                    <ul id="as-installs" style="list-style:none;padding:0;margin:0;"></ul>
+                    <p id="as-panel-status" style="margin-top:12px;font-size:14px;"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="contact-modal" class="modal-overlay">
         <div class="modal-container" style="max-width: 560px;">
             <div class="modal-header">
@@ -346,6 +379,9 @@
                             </button>
                             <button type="button" class="ct-type" data-type="other">
                                 <span class="ct-ico">💬</span><b data-ct="t_other">자유 문의</b><small data-ct="t_other_s">궁금한 점을 편하게 남겨 주세요</small>
+                            </button>
+                            <button type="button" class="ct-type" onclick="openAsModal(event)">
+                                <span class="ct-ico">🧾</span><b>AS 접수 (설치 솔루션)</b><small>등록된 기관 관리자 전용</small>
                             </button>
                         </div>
                     </div>
