@@ -1558,7 +1558,8 @@ function asSendChat(e) {
         })
         .asChat(asSession, asPicked, asChatMsgs);
 }
-// 대화 내용을 문의 내용으로 넘겨 국장님께 전달한다(사용자가 고쳐서 등록할 수 있다).
+// '해결이 안 됐어요 → 국장님께 전달': 대화 내용을 그대로 문의로 등록한다(버튼 한 번으로 접수 완료).
+// 아직 대화가 없으면 문의 내용을 직접 쓰는 화면으로 보낸다.
 function asEscalate() {
     var lines = [];
     asChatMsgs.forEach(function (m, i) {
@@ -1567,11 +1568,34 @@ function asEscalate() {
     });
     var body = lines.length ? ('AS 기사와 대화했지만 해결되지 않았습니다.\n' + lines.join('\n')) : '';
     if (body.length > 1900) body = body.slice(0, 1900);
-    document.getElementById('as-picked').textContent = asPicked;
-    document.getElementById('as-body').value = body;
-    asUpdateCount();
-    asSetStatus('as-panel-status', '', true);
-    asShowView('write');
+    if (body.length < 10) {
+        document.getElementById('as-picked').textContent = asPicked;
+        document.getElementById('as-body').value = '';
+        asUpdateCount();
+        asSetStatus('as-panel-status', '문제 내용을 적어 주세요.', true);
+        asShowView('write');
+        return;
+    }
+    var btn = document.getElementById('as-escalate-btn');
+    btn.disabled = true;
+    asSetStatus('as-panel-status', '국장님께 전달 중입니다...', true);
+    google.script.run
+        .withSuccessHandler(function (r) {
+            btn.disabled = false;
+            if (asExpired(r)) return;
+            if (r && r.ok) {
+                asSetStatus('as-panel-status', '접수번호 ' + r.ticketId + ' · ' + r.message, true);
+                asLoadTickets();
+                asShowView('list');
+            } else {
+                asSetStatus('as-panel-status', (r && r.message) || '전달하지 못했습니다. 잠시 후 다시 눌러 주세요.', false);
+            }
+        })
+        .withFailureHandler(function (err) {
+            btn.disabled = false;
+            asSetStatus('as-panel-status', '연결 오류: ' + (err && err.message ? err.message : err), false);
+        })
+        .submitTicket(asSession, asPicked, body);
 }
 function asUpdateCount() {
     var n = document.getElementById('as-body').value.length;
