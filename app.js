@@ -1494,6 +1494,7 @@ function asPickSolution(name) {
     asPicked = name;
     asChatMsgs = [];
     asChatBusy = false;
+    asBlinkEscalate(false);
     document.getElementById('as-bot-line').textContent = 'AI · ' + asBot.name + ' (' + asBot.title + ')';
     document.getElementById('as-chat-sol').textContent = (asOrgName ? asOrgName + ' · ' : '') + name;
     document.getElementById('as-chat-log').innerHTML = '';
@@ -1505,6 +1506,12 @@ function asPickSolution(name) {
     asChatMsgs.push({ role: 'bot', text: hello });
     asAddBubble('bot', hello);
     asShowView('chat');
+}
+// AI가 '국장님께 전달' 버튼을 안내했거나 답변을 못 줄 때, 맨 아래 버튼이 색을 번갈아 바꾸며 깜빡여 누르도록 유도한다.
+function asBlinkEscalate(on) {
+    var b = document.getElementById('as-escalate-btn');
+    if (!b) return;
+    if (on) b.classList.add('as-blink'); else b.classList.remove('as-blink');
 }
 function asAddBubble(role, text) {
     var log = document.getElementById('as-chat-log');
@@ -1527,6 +1534,7 @@ function asSendChat(e) {
     asAddBubble('user', text);
     input.value = '';
     asChatBusy = true;
+    asBlinkEscalate(false);
     document.getElementById('as-chat-send').disabled = true;
     var wait = asAddBubble('bot', '확인 중입니다...');
     function done() {
@@ -1541,11 +1549,13 @@ function asSendChat(e) {
             if (r && r.ok) {
                 asChatMsgs.push({ role: 'bot', text: r.reply });
                 asAddBubble('bot', r.reply);
+                if (r.suggestEscalate) asBlinkEscalate(true);
                 if (typeof r.remaining === 'number' && r.remaining <= 3) {
                     asSetStatus('as-panel-status', '이번 접속에서 남은 대화는 ' + r.remaining + '번입니다.', true);
                 }
             } else {
                 asAddBubble('bot', (r && r.message) || '답변을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+                asBlinkEscalate(true);
                 if (r && r.limit) {
                     input.disabled = true;
                     document.getElementById('as-chat-send').disabled = true;
@@ -1555,6 +1565,7 @@ function asSendChat(e) {
         .withFailureHandler(function () {
             done();
             asAddBubble('bot', '연결 오류가 났어요. 잠시 후 다시 시도해 주세요.');
+            asBlinkEscalate(true);
         })
         .asChat(asSession, asPicked, asChatMsgs);
 }

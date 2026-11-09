@@ -980,11 +980,11 @@
 /* 프로파일 받기·관리자 버튼 글자 가운데 정렬 */
 #pf-pw-modal .btn, #pf-admin .btn, #admin-login-modal .btn, .pf-bar .btn { justify-content: center; text-align: center; }
 
-/* AS 채팅: '해결이 안 됐어요 → 국장님께 전달' 버튼을 눈에 띄게 (반짝이는 테두리·빛, 움직임 줄이기 설정이면 정지) */
-@keyframes as-escalate-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(195,244,0,0), 0 0 8px rgba(195,244,0,.35); background: transparent; }
-  50% { box-shadow: 0 0 0 6px rgba(195,244,0,.22), 0 0 24px rgba(195,244,0,.85); background: rgba(195,244,0,.16); }
+/* AS 채팅: AI가 '해결이 안 됐어요 → 국장님께 전달' 버튼을 안내하면(.as-blink) 버튼이 마우스를 올린 것처럼 색이 번갈아 바뀌며 깜빡인다. 움직임 줄이기 설정이면 색만 바꿔 고정. */
+@keyframes as-escalate-blink {
+  0%, 100% { background: transparent; color: var(--fg); border-color: var(--line-2); box-shadow: 0 0 0 0 rgba(195,244,0,0); }
+  50% { background: var(--fg); color: var(--bg); border-color: var(--fg); box-shadow: 0 0 0 6px rgba(195,244,0,.28), 0 0 22px rgba(195,244,0,.8); }
 }
-.as-escalate-btn { border: 2px solid var(--lime) !important; color: var(--lime) !important; font-weight: 800; animation: as-escalate-glow 1.3s ease-in-out infinite; }
-.as-escalate-btn:disabled { animation: none; opacity: .6; }
-@media (prefers-reduced-motion: reduce) { .as-escalate-btn { animation: none; box-shadow: 0 0 14px rgba(195,244,0,.6); } }
+.as-escalate-btn.as-blink { font-weight: 800; animation: as-escalate-blink 1s ease-in-out infinite; }
+.as-escalate-btn.as-blink:disabled { animation: none; opacity: .6; }
+@media (prefers-reduced-motion: reduce) { .as-escalate-btn.as-blink { animation: none; background: var(--fg); color: var(--bg); border-color: var(--fg); } }
