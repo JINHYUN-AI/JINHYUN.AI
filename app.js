@@ -1331,8 +1331,9 @@ function asSetStatus(id, msg, ok) {
 function asShowView(name) {
     document.getElementById('as-step-request').style.display = name === 'request' ? 'block' : 'none';
     document.getElementById('as-step-loading').style.display = name === 'loading' ? 'block' : 'none';
-    document.getElementById('as-step-panel').style.display = (name === 'list' || name === 'write') ? 'block' : 'none';
+    document.getElementById('as-step-panel').style.display = (name === 'list' || name === 'chat' || name === 'write') ? 'block' : 'none';
     document.getElementById('as-view-list').style.display = name === 'list' ? 'block' : 'none';
+    document.getElementById('as-view-chat').style.display = name === 'chat' ? 'block' : 'none';
     document.getElementById('as-view-write').style.display = name === 'write' ? 'block' : 'none';
 }
 function asShowRequest() { asShowView('request'); }
@@ -1404,6 +1405,8 @@ function asLoadInstalls() {
                 asSetStatus('as-status', (r && r.message) || '설치 내역을 불러오지 못했습니다.', false);
                 return;
             }
+            asOrgName = r.orgName || '';
+            asBot = { name: r.botName || 'JINHYUN.AI AS 기사', title: r.botTitle || 'AI 기술지원 담당' };
             document.getElementById('as-org').textContent = r.orgName + ' · 설치 솔루션';
             asRenderInstalls(r.installs);
             asLoadTickets();
@@ -1482,10 +1485,90 @@ function asLoadTickets() {
         .withFailureHandler(function () {})
         .getMyTickets(asSession);
 }
+var asOrgName = '';
+var asBot = { name: 'JINHYUN.AI AS 기사', title: 'AI 기술지원 담당' };
+var asChatMsgs = [];
+var asChatBusy = false;
+// 솔루션을 고르면 AS 기사(AI)와의 채팅이 먼저 열린다. 해결이 안 되면 '국장님께 전달'로 문의 등록 화면으로 간다.
 function asPickSolution(name) {
     asPicked = name;
-    document.getElementById('as-picked').textContent = name;
-    document.getElementById('as-body').value = '';
+    asChatMsgs = [];
+    asChatBusy = false;
+    document.getElementById('as-bot-line').textContent = 'AI · ' + asBot.name + ' (' + asBot.title + ')';
+    document.getElementById('as-chat-sol').textContent = (asOrgName ? asOrgName + ' · ' : '') + name;
+    document.getElementById('as-chat-log').innerHTML = '';
+    document.getElementById('as-chat-input').value = '';
+    document.getElementById('as-chat-input').disabled = false;
+    document.getElementById('as-chat-send').disabled = false;
+    asSetStatus('as-panel-status', '', true);
+    var hello = '안녕하세요, ' + (asOrgName ? asOrgName + ' 담당 ' : '') + 'AI ' + asBot.name + '입니다. \'' + name + '\'에 어떤 문제가 있으신가요? 증상을 자세히 적어 주시면 안내해 드릴게요.';
+    asChatMsgs.push({ role: 'bot', text: hello });
+    asAddBubble('bot', hello);
+    asShowView('chat');
+}
+function asAddBubble(role, text) {
+    var log = document.getElementById('as-chat-log');
+    var b = document.createElement('div');
+    var mine = role === 'user';
+    b.style.cssText = 'max-width:85%;padding:8px 12px;border-radius:12px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word;' +
+        (mine ? 'align-self:flex-end;background:rgba(190,255,0,0.18);' : 'align-self:flex-start;background:rgba(128,128,128,0.2);');
+    b.textContent = text;
+    log.appendChild(b);
+    log.scrollTop = log.scrollHeight;
+    return b;
+}
+function asSendChat(e) {
+    e.preventDefault();
+    if (asChatBusy) return;
+    var input = document.getElementById('as-chat-input');
+    var text = input.value.trim();
+    if (!text) return;
+    asChatMsgs.push({ role: 'user', text: text });
+    asAddBubble('user', text);
+    input.value = '';
+    asChatBusy = true;
+    document.getElementById('as-chat-send').disabled = true;
+    var wait = asAddBubble('bot', '확인 중입니다...');
+    function done() {
+        asChatBusy = false;
+        if (!input.disabled) document.getElementById('as-chat-send').disabled = false;
+        if (wait && wait.parentNode) wait.parentNode.removeChild(wait);
+    }
+    google.script.run
+        .withSuccessHandler(function (r) {
+            done();
+            if (asExpired(r)) return;
+            if (r && r.ok) {
+                asChatMsgs.push({ role: 'bot', text: r.reply });
+                asAddBubble('bot', r.reply);
+                if (typeof r.remaining === 'number' && r.remaining <= 3) {
+                    asSetStatus('as-panel-status', '이번 접속에서 남은 대화는 ' + r.remaining + '번입니다.', true);
+                }
+            } else {
+                asAddBubble('bot', (r && r.message) || '답변을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+                if (r && r.limit) {
+                    input.disabled = true;
+                    document.getElementById('as-chat-send').disabled = true;
+                }
+            }
+        })
+        .withFailureHandler(function () {
+            done();
+            asAddBubble('bot', '연결 오류가 났어요. 잠시 후 다시 시도해 주세요.');
+        })
+        .asChat(asSession, asPicked, asChatMsgs);
+}
+// 대화 내용을 문의 내용으로 넘겨 국장님께 전달한다(사용자가 고쳐서 등록할 수 있다).
+function asEscalate() {
+    var lines = [];
+    asChatMsgs.forEach(function (m, i) {
+        if (i === 0 && m.role === 'bot') return;
+        lines.push((m.role === 'user' ? '[질문] ' : '[AI 답변] ') + m.text.replace(/\s+/g, ' ').slice(0, 300));
+    });
+    var body = lines.length ? ('AS 기사와 대화했지만 해결되지 않았습니다.\n' + lines.join('\n')) : '';
+    if (body.length > 1900) body = body.slice(0, 1900);
+    document.getElementById('as-picked').textContent = asPicked;
+    document.getElementById('as-body').value = body;
     asUpdateCount();
     asSetStatus('as-panel-status', '', true);
     asShowView('write');
