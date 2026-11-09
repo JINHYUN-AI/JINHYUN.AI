@@ -1494,7 +1494,7 @@ function asPickSolution(name) {
     asPicked = name;
     asChatMsgs = [];
     asChatBusy = false;
-    asBlinkEscalate(false);
+    asHideEscalate();
     document.getElementById('as-bot-line').textContent = 'AI · ' + asBot.name + ' (' + asBot.title + ')';
     document.getElementById('as-chat-sol').textContent = (asOrgName ? asOrgName + ' · ' : '') + name;
     document.getElementById('as-chat-log').innerHTML = '';
@@ -1507,11 +1507,34 @@ function asPickSolution(name) {
     asAddBubble('bot', hello);
     asShowView('chat');
 }
-// AI가 '국장님께 전달' 버튼을 안내했거나 답변을 못 줄 때, 맨 아래 버튼이 색을 번갈아 바꾸며 깜빡여 누르도록 유도한다.
-function asBlinkEscalate(on) {
+// '해결이 안 됐어요 → 국장님께 전달' 버튼은 처음엔 보이지 않는다. 대화하다가 해결이 어려워 보일 때 나타나고, 나타날 때 딱 3번만 깜빡인다.
+var asUserTurns = 0;
+var asEscalateShown = false;
+var AS_FRUSTRATION = /안\s?(돼|되|됩|풀|나와|보여|열려)|해결\s?(이|가)?\s?안|모르겠|여전|그래도|소용\s?없|똑같|답답|짜증/;
+function asHideEscalate() {
+    asUserTurns = 0;
+    asEscalateShown = false;
     var b = document.getElementById('as-escalate-btn');
     if (!b) return;
-    if (on) b.classList.add('as-blink'); else b.classList.remove('as-blink');
+    b.style.display = 'none';
+    b.classList.remove('as-blink');
+}
+function asRevealEscalate() {
+    var b = document.getElementById('as-escalate-btn');
+    if (!b || asEscalateShown) return;
+    asEscalateShown = true;
+    b.style.display = '';
+    b.classList.remove('as-blink');
+    void b.offsetWidth;            // 애니메이션을 처음부터 다시 시작
+    b.classList.add('as-blink');   // 3번 깜빡이고 멈춤(CSS)
+    var log = document.getElementById('as-chat-log');
+    if (log) log.scrollTop = log.scrollHeight;
+}
+// 첫 질문에는 나타나지 않는다. 두 번째 질문부터: AI가 전달을 권했거나 사용자가 막힌 느낌을 말하면 나타난다. 네 번째 질문부터는 항상 나타난다. 답변 실패·한도·연결 오류는 바로 나타난다.
+function asMaybeReveal(r, userText) {
+    if (!r || !r.ok) { asRevealEscalate(); return; }
+    if (asUserTurns >= 4) { asRevealEscalate(); return; }
+    if (asUserTurns >= 2 && (r.suggestEscalate || AS_FRUSTRATION.test(userText || ''))) asRevealEscalate();
 }
 function asAddBubble(role, text) {
     var log = document.getElementById('as-chat-log');
@@ -1534,7 +1557,7 @@ function asSendChat(e) {
     asAddBubble('user', text);
     input.value = '';
     asChatBusy = true;
-    asBlinkEscalate(false);
+    asUserTurns++;
     document.getElementById('as-chat-send').disabled = true;
     var wait = asAddBubble('bot', '확인 중입니다...');
     function done() {
@@ -1549,13 +1572,13 @@ function asSendChat(e) {
             if (r && r.ok) {
                 asChatMsgs.push({ role: 'bot', text: r.reply });
                 asAddBubble('bot', r.reply);
-                if (r.suggestEscalate) asBlinkEscalate(true);
+                asMaybeReveal(r, text);
                 if (typeof r.remaining === 'number' && r.remaining <= 3) {
                     asSetStatus('as-panel-status', '이번 접속에서 남은 대화는 ' + r.remaining + '번입니다.', true);
                 }
             } else {
                 asAddBubble('bot', (r && r.message) || '답변을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.');
-                asBlinkEscalate(true);
+                asMaybeReveal(r, text);
                 if (r && r.limit) {
                     input.disabled = true;
                     document.getElementById('as-chat-send').disabled = true;
@@ -1565,7 +1588,7 @@ function asSendChat(e) {
         .withFailureHandler(function () {
             done();
             asAddBubble('bot', '연결 오류가 났어요. 잠시 후 다시 시도해 주세요.');
-            asBlinkEscalate(true);
+            asRevealEscalate();
         })
         .asChat(asSession, asPicked, asChatMsgs);
 }
