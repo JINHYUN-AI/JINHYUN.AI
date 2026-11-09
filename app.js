@@ -1318,24 +1318,39 @@ document.addEventListener('click', function (e) {
   }
 });
 
-// ===== AS 접수 (이메일 링크 인증 → 설치 솔루션 목록) =====
-// 백엔드: AsService.gs (requestLoginLink / verifyLoginLink / getMyOrgSolutions)
+// ===== AS 접수 (이메일 링크 인증 → 설치 솔루션 선택 → 문의 등록) =====
+// 백엔드: AsService.gs (requestLoginLink / verifyLoginLink / getMyOrgSolutions / submitTicket / getMyTickets)
 var asSession = null;
+var asPicked = '';
 function asSetStatus(id, msg, ok) {
     var el = document.getElementById(id);
     if (!el) return;
     el.textContent = msg || '';
     el.style.color = ok ? '' : '#fa5252';
 }
-function asShowRequest() {
-    document.getElementById('as-step-request').style.display = 'block';
-    document.getElementById('as-step-panel').style.display = 'none';
+function asShowView(name) {
+    document.getElementById('as-step-request').style.display = name === 'request' ? 'block' : 'none';
+    document.getElementById('as-step-loading').style.display = name === 'loading' ? 'block' : 'none';
+    document.getElementById('as-step-panel').style.display = (name === 'list' || name === 'write') ? 'block' : 'none';
+    document.getElementById('as-view-list').style.display = name === 'list' ? 'block' : 'none';
+    document.getElementById('as-view-write').style.display = name === 'write' ? 'block' : 'none';
+}
+function asShowRequest() { asShowView('request'); }
+function asExpired(r) {
+    if (r && typeof r.message === 'string' && r.message.indexOf('세션이 만료') !== -1) {
+        asSession = null;
+        asShowRequest();
+        asSetStatus('as-status', r.message, false);
+        return true;
+    }
+    return false;
 }
 function openAsModal(e) {
     if (e) e.preventDefault();
     closeModal('contact-modal');
-    if (!asSession) asShowRequest();
     document.getElementById('as-modal').classList.add('open');
+    if (asSession) asLoadInstalls();
+    else asShowRequest();
 }
 function asRequestLink(e) {
     e.preventDefault();
@@ -1362,57 +1377,154 @@ function asHandleToken() {
     // 링크의 토큰을 주소창에서 바로 지운다 (기록에 남지 않도록)
     try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (err) {}
     document.getElementById('as-modal').classList.add('open');
-    asShowRequest();
-    asSetStatus('as-status', '인증 확인 중입니다...', true);
+    asShowView('loading');
     google.script.run
         .withSuccessHandler(function (r) {
             if (r && r.ok) {
                 asSession = r.session;
                 asLoadInstalls();
             } else {
+                asShowRequest();
                 asSetStatus('as-status', (r && r.message) || '인증에 실패했습니다.', false);
             }
         })
         .withFailureHandler(function (err) {
+            asShowRequest();
             asSetStatus('as-status', '연결 오류: ' + (err && err.message ? err.message : err), false);
         })
         .verifyLoginLink(m[1]);
 }
 function asLoadInstalls() {
+    asShowView('loading');
     google.script.run
         .withSuccessHandler(function (r) {
+            if (asExpired(r)) return;
             if (!r || !r.ok) {
-                asSession = null;
                 asShowRequest();
-                asSetStatus('as-status', (r && r.message) || '세션을 열 수 없습니다.', false);
+                asSetStatus('as-status', (r && r.message) || '설치 내역을 불러오지 못했습니다.', false);
                 return;
             }
-            document.getElementById('as-step-request').style.display = 'none';
-            document.getElementById('as-step-panel').style.display = 'block';
             document.getElementById('as-org').textContent = r.orgName + ' · 설치 솔루션';
-            var list = document.getElementById('as-installs');
-            list.innerHTML = '';
-            if (!r.installs.length) {
-                var empty = document.createElement('li');
-                empty.textContent = '등록된 설치 내역이 없습니다.';
-                list.appendChild(empty);
-            }
-            r.installs.forEach(function (x) {
-                var li = document.createElement('li');
-                li.style.cssText = 'padding:10px 0;border-bottom:1px solid rgba(128,128,128,0.25);';
-                var t = document.createElement('b');
-                t.textContent = x.solution;
-                var d = document.createElement('div');
-                d.style.cssText = 'font-size:13px;opacity:0.75;margin-top:2px;';
-                d.textContent = x.installedAt + (x.note ? ' · ' + x.note : '');
-                li.appendChild(t);
-                li.appendChild(d);
-                list.appendChild(li);
-            });
+            asRenderInstalls(r.installs);
+            asLoadTickets();
+            asShowView('list');
         })
         .withFailureHandler(function (err) {
+            asShowRequest();
             asSetStatus('as-status', '연결 오류: ' + (err && err.message ? err.message : err), false);
         })
         .getMyOrgSolutions(asSession);
 }
+function asRenderInstalls(installs) {
+    var box = document.getElementById('as-installs');
+    box.innerHTML = '';
+    // 같은 솔루션이 여러 번 설치로 기록되어 있으면 한 번만 보여 준다 (가장 최근 설치일 기준)
+    var seen = {};
+    var unique = [];
+    installs.forEach(function (x) {
+        if (seen[x.solution]) return;
+        seen[x.solution] = true;
+        unique.push(x);
+    });
+    if (!unique.length) {
+        var empty = document.createElement('p');
+        empty.style.cssText = 'margin:0;font-size:14px;opacity:.8;';
+        empty.textContent = '등록된 설치 내역이 없습니다.';
+        box.appendChild(empty);
+        return;
+    }
+    unique.forEach(function (x) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.style.cssText = 'width:100%;text-align:left;padding:12px 14px;border:1px solid rgba(128,128,128,0.35);border-radius:10px;background:transparent;color:inherit;cursor:pointer;';
+        var t = document.createElement('b');
+        t.textContent = x.solution;
+        var d = document.createElement('div');
+        d.style.cssText = 'font-size:13px;opacity:0.7;margin-top:2px;';
+        d.textContent = x.installedAt + (x.note ? ' · ' + x.note : '');
+        btn.appendChild(t);
+        btn.appendChild(d);
+        btn.onclick = function () { asPickSolution(x.solution); };
+        box.appendChild(btn);
+    });
+}
+function asLoadTickets() {
+    google.script.run
+        .withSuccessHandler(function (r) {
+            if (asExpired(r)) return;
+            var box = document.getElementById('as-tickets');
+            box.innerHTML = '';
+            if (!r || !r.ok || !r.tickets.length) {
+                var none = document.createElement('p');
+                none.style.cssText = 'margin:0;opacity:.8;';
+                none.textContent = '접수된 문의가 없습니다.';
+                box.appendChild(none);
+                return;
+            }
+            r.tickets.forEach(function (tk) {
+                var row = document.createElement('div');
+                row.style.cssText = 'padding:10px 0;border-bottom:1px solid rgba(128,128,128,0.25);';
+                var head = document.createElement('div');
+                head.style.cssText = 'font-weight:600;';
+                head.textContent = tk.ticketId + ' · ' + tk.solution + ' · ' + tk.status;
+                var when = document.createElement('div');
+                when.style.cssText = 'font-size:12px;opacity:0.7;';
+                when.textContent = tk.receivedAt;
+                var text = document.createElement('div');
+                text.style.cssText = 'margin-top:4px;white-space:pre-wrap;';
+                text.textContent = tk.body;
+                row.appendChild(head);
+                row.appendChild(when);
+                row.appendChild(text);
+                box.appendChild(row);
+            });
+        })
+        .withFailureHandler(function () {})
+        .getMyTickets(asSession);
+}
+function asPickSolution(name) {
+    asPicked = name;
+    document.getElementById('as-picked').textContent = name;
+    document.getElementById('as-body').value = '';
+    asUpdateCount();
+    asSetStatus('as-panel-status', '', true);
+    asShowView('write');
+}
+function asUpdateCount() {
+    var n = document.getElementById('as-body').value.length;
+    document.getElementById('as-count').textContent = n + ' / 2000';
+}
+function asSubmitTicket() {
+    var text = document.getElementById('as-body').value.trim();
+    if (text.length < 10) {
+        asSetStatus('as-panel-status', '문제 내용을 10자 이상 적어 주세요.', false);
+        return;
+    }
+    var btn = document.getElementById('as-submit-btn');
+    btn.disabled = true;
+    asSetStatus('as-panel-status', '등록 중입니다...', true);
+    google.script.run
+        .withSuccessHandler(function (r) {
+            btn.disabled = false;
+            if (asExpired(r)) return;
+            if (r && r.ok) {
+                document.getElementById('as-body').value = '';
+                asUpdateCount();
+                asSetStatus('as-panel-status', '접수번호 ' + r.ticketId + ' · ' + r.message, true);
+                asLoadTickets();
+                asShowView('list');
+            } else {
+                asSetStatus('as-panel-status', (r && r.message) || '등록하지 못했습니다.', false);
+            }
+        })
+        .withFailureHandler(function (err) {
+            btn.disabled = false;
+            asSetStatus('as-panel-status', '연결 오류: ' + (err && err.message ? err.message : err), false);
+        })
+        .submitTicket(asSession, asPicked, text);
+}
 window.addEventListener('load', asHandleToken);
+document.addEventListener('DOMContentLoaded', function () {
+    var ta = document.getElementById('as-body');
+    if (ta) ta.addEventListener('input', asUpdateCount);
+});
