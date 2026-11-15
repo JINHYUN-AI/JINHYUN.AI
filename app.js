@@ -1467,18 +1467,15 @@ function asLoadTickets() {
             r.tickets.forEach(function (tk) {
                 var row = document.createElement('div');
                 row.style.cssText = 'padding:10px 0;border-bottom:1px solid rgba(128,128,128,0.25);';
+                // 목록은 제목·날짜·솔루션·처리상황만 보여 준다 (본문은 서버에서도 보내지 않음)
                 var head = document.createElement('div');
                 head.style.cssText = 'font-weight:600;';
-                head.textContent = tk.ticketId + ' · ' + tk.solution + ' · ' + tk.status;
+                head.textContent = tk.title || '(제목 없음)';
                 var when = document.createElement('div');
-                when.style.cssText = 'font-size:12px;opacity:0.7;';
-                when.textContent = tk.receivedAt;
-                var text = document.createElement('div');
-                text.style.cssText = 'margin-top:4px;white-space:pre-wrap;';
-                text.textContent = tk.body;
+                when.style.cssText = 'font-size:12px;opacity:0.7;margin-top:2px;';
+                when.textContent = tk.receivedAt + ' · ' + tk.solution + ' · ' + tk.status;
                 row.appendChild(head);
                 row.appendChild(when);
-                row.appendChild(text);
                 box.appendChild(row);
             });
         })
