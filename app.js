@@ -1186,17 +1186,20 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
                 if (timeEl) timeEl.innerText = timeStr;
 
                 if (!data.success) {
-                    visitBody.innerHTML = `<tr><td colspan="3" style="color:#fa5252; padding:10px;">데이터 로드 실패: ${data.message}</td></tr>`;
+                    visitBody.innerHTML = `<tr><td colspan="3" style="color:#fa5252; padding:10px;">데이터 로드 실패: ${escDash(data.message)}</td></tr>`;
                     return;
                 }
 
                 renderDashboard(data);
             })
             .withFailureHandler(err => {
-                visitBody.innerHTML = `<tr><td colspan="3" style="color:#fa5252; padding:10px;">연결 오류: ${err.message}</td></tr>`;
+                visitBody.innerHTML = `<tr><td colspan="3" style="color:#fa5252; padding:10px;">연결 오류: ${escDash(err.message)}</td></tr>`;
             })
             .getAdminDashboardData(window.__adminPw);
     }
+
+    // 방문자·챗봇 이용자가 남긴 값이 섞여 있으므로 화면에 넣을 때는 반드시 이스케이프한다(저장형 XSS 차단).
+    function escDash(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     // 대시보드 데이터 렌더링
     function renderDashboard(data) {
@@ -1216,8 +1219,8 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
             } else {
                 topSystemsEl.innerHTML = topSystems.map((s, i) => `
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:0.9rem; color:white; font-weight:600;">${i + 1}. ${s.name}</span>
-                        <span style="font-size:0.75rem; color:var(--jh-blue); font-weight:700;">${s.count} clicks</span>
+                        <span style="font-size:0.9rem; color:white; font-weight:600;">${i + 1}. ${escDash(s.name)}</span>
+                        <span style="font-size:0.75rem; color:var(--jh-blue); font-weight:700;">${escDash(s.count)} clicks</span>
                     </div>
                 `).join('');
             }
@@ -1234,9 +1237,9 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
                 const dateStr = String(v.time || '').substring(0, 10);
                 return `
                     <tr>
-                        <td title="${v.time}">${dateStr}<br><span style="color:var(--mantine-color-dark-3);font-size:0.7rem;">${timeStr}</span></td>
-                        <td title="${v.device}">${v.device || '-'}</td>
-                        <td title="${v.action}">${v.action || '접속'}</td>
+                        <td title="${escDash(v.time)}">${escDash(dateStr)}<br><span style="color:var(--mantine-color-dark-3);font-size:0.7rem;">${escDash(timeStr)}</span></td>
+                        <td title="${escDash(v.device)}">${escDash(v.device || '-')}</td>
+                        <td title="${escDash(v.action)}">${escDash(v.action || '접속')}</td>
                     </tr>
                 `;
             }).join('');
@@ -1257,9 +1260,9 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
 
                 return `
                     <div class="chat-log-item" onclick="openChatDetail(${idx})" style="cursor:pointer;">
-                        <div class="chat-log-time">🕒 ${timeStr}</div>
-                        <div class="chat-log-question">👤 ${q}</div>
-                        <div class="chat-log-answer">🤖 ${a}</div>
+                        <div class="chat-log-time">🕒 ${escDash(timeStr)}</div>
+                        <div class="chat-log-question">👤 ${escDash(q)}</div>
+                        <div class="chat-log-answer">🤖 ${escDash(a)}</div>
                     </div>
                 `;
             }).join('');
