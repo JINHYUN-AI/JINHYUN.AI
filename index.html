@@ -370,7 +370,7 @@
                         <button type="button" onclick="asShowView('list')" class="btn sm" style="margin-bottom:12px;">← 솔루션 목록으로</button>
                         <p style="margin:0 0 2px;"><b id="as-bot-line"></b></p>
                         <p id="as-chat-sol" style="margin:0 0 6px;font-size:13px;opacity:.8;"></p>
-                        <p style="margin:0 0 10px;font-size:12px;opacity:.65;">AI가 답변해 드립니다. 이용인 이름·연락처·비밀번호는 적지 말아 주세요.</p>
+                        <p style="margin:0 0 10px;font-size:12px;opacity:.65;">AI가 답변해 드립니다. 이용인 이름·연락처·비밀번호는 적지 말아 주세요. 상담 내용은 90일 보관 후 삭제됩니다.</p>
                         <div id="as-chat-log" style="height:260px;overflow-y:auto;border:1px solid rgba(128,128,128,0.35);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;"></div>
                         <form id="as-chat-form" onsubmit="asSendChat(event)" novalidate style="display:flex;gap:8px;margin-top:10px;">
                             <input id="as-chat-input" class="form-input" maxlength="1000" autocomplete="off" placeholder="문제를 적어 주세요" style="flex:1;">
@@ -525,7 +525,8 @@
                             <div class="consent-title">🔒 개인정보 수집 및 이용 동의</div>
                             <div class="consent-desc">
                                 문의 확인 및 회신을 위해 성함, 소속, 기관전화번호를 수집합니다.<br>
-                                수집된 정보는 해당 문의 처리 목적으로만 사용됩니다. 동의하시나요?
+                                수집된 정보는 해당 문의 처리 목적으로만 사용되며, 접수일로부터 1년간 보관한 뒤 삭제합니다.<br>
+                                동의하지 않으실 수 있으나, 이 경우 문의 접수가 어렵습니다. 동의하시나요?
                             </div>
                             <div class="consent-buttons">
                                 <button type="button" id="consent-yes" class="consent-btn consent-btn-agree">✅ 동의함</button>
@@ -588,7 +589,7 @@
                 </svg>
             </button>
         </div>
-        <div class="chat-privacy-note">입력한 질문은 답변을 위해 구글 AI(Gemini)로 전송되고 기록됩니다. 이름·연락처·건강정보 등 개인정보는 입력하지 마세요.</div>
+        <div class="chat-privacy-note">입력한 질문은 답변을 위해 구글 AI(Gemini)로 전송되며, 질문과 답변 기록은 90일 보관 후 삭제됩니다. 이름·연락처·건강정보 등 개인정보는 입력하지 마세요.</div>
     </div>
 
     <!-- 프로파일 받기: 임시 비밀번호 입력 -->

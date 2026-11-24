@@ -1018,7 +1018,7 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
         });
 
         if (formData.title && formData.name && formData.content) {
-            addMessageToUI('bot', "국장님께 내용을 전달해 드리기 전, 개인정보 수집 및 이용 동의가 필요합니다. 동의하시나요?");
+            addMessageToUI('bot', "국장님께 내용을 전달해 드리기 전, 개인정보 수집 및 이용 동의가 필요합니다. 성함·소속·연락처와 문의 내용은 문의 처리 목적으로만 쓰이고 국장님 업무 메신저(구글 챗)로 전달되며, 접수 기록은 접수일로부터 1년간 보관한 뒤 삭제합니다. 동의하지 않으셔도 되지만 이 경우 전달이 어렵습니다. 동의하시나요?");
 
             showChatbotConsent((agreed) => {
                 if (agreed) {
