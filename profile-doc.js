@@ -17,7 +17,9 @@
   function pad(n) { return String(n).length < 2 ? '0' + n : String(n); }
   function imgUrl(url) {
     var u = String(url || ''), m = u.match(/[-\w]{25,}/);
-    return m ? 'https:\/\/lh3.googleusercontent.com/d/' + m[0] : u;
+    if (m) return 'https:\/\/lh3.googleusercontent.com/d/' + m[0];
+    // 승인한 출처(구글 이미지 주소)만 허용하고, 그 밖의 외부 주소는 쓰지 않는다(열람 정보가 외부로 새지 않게, 2026-11-24 재점검 X8)
+    return /^https:\/\/([a-z0-9-]+\.)*googleusercontent\.com\//i.test(u) ? u : '';
   }
   function escAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
   function escText(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }

@@ -991,3 +991,5 @@
 
 /* 일반 챗봇 개인정보 입력 주의 안내(2026-11-24 20-X6) */
 .chat-privacy-note { font-size: 11px; line-height: 1.4; color: #868e96; padding: 4px 14px 8px; text-align: center; }
+.chat-retry-btn { display: block; margin: 6px auto 10px; padding: 6px 14px; border-radius: 999px; border: 1px solid #ced4da; background: #fff; color: #212529; font-size: 13px; cursor: pointer; }
+.chat-retry-btn:disabled { opacity: .6; cursor: default; }

@@ -1023,18 +1023,41 @@ var currentLang = (function () { try { return localStorage.getItem('site_lang') 
             showChatbotConsent((agreed) => {
                 if (agreed) {
                     addMessageToUI('bot', "감사합니다. 국장님께 지금 즉시 브리핑을 전달하겠습니다.");
-                    google.script.run
-                        .withSuccessHandler(res => {
-                            if (res.success) {
-                                addMessageToUI('bot', "알람: 국장님께 문의 내용과 대화 원문이 안전하게 전달되었습니다. 확인 후 연락드리겠습니다.");
-                            }
-                        })
-                        .sendInquiryEmail(formData, chatHistory);
+                    sendChatInquiry(formData, chatHistory);
                 } else {
                     addMessageToUI('bot', "동의하지 않으셔서 접수가 취소되었습니다. 더 궁금한 점이 있으시면 언제든 말씀해 주세요.");
                 }
             });
         }
+    }
+
+    // 챗봇 문의 전달: 성공·대체 저장·실패·통신 실패를 구분해 알려 주고, 실패하면 같은 내용으로 다시 전달할 수 있게 한다(2026-11-24 재점검 X7).
+    function sendChatInquiry(formData, chatHistory) {
+        google.script.run
+            .withSuccessHandler(res => {
+                if (res && res.success && res.fallbackSaved) {
+                    addMessageToUI('bot', "알림: 국장님 휴대폰 알림 전송은 실패했지만, 문의 내용은 접수 목록에 저장되었습니다. 확인 후 연락드리겠습니다.");
+                } else if (res && res.success) {
+                    addMessageToUI('bot', "알람: 국장님께 문의 내용과 대화 원문이 안전하게 전달되었습니다. 확인 후 연락드리겠습니다.");
+                } else {
+                    showChatInquiryRetry(formData, chatHistory, (res && res.message) || "문의 전달에 실패했습니다.");
+                }
+            })
+            .withFailureHandler(() => showChatInquiryRetry(formData, chatHistory, "통신 오류로 문의를 전달하지 못했습니다."))
+            .sendInquiryEmail(formData, chatHistory);
+    }
+
+    function showChatInquiryRetry(formData, chatHistory, msg) {
+        addMessageToUI('bot', msg + " 아래 버튼으로 다시 전달하시거나, 잠시 후 전화로 연락해 주세요.");
+        const box = document.getElementById('chat-messages');
+        if (!box) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chat-retry-btn';
+        btn.textContent = '다시 전달하기';
+        btn.onclick = () => { btn.disabled = true; btn.textContent = '다시 전달하는 중...'; sendChatInquiry(formData, chatHistory); };
+        box.appendChild(btn);
+        box.scrollTop = box.scrollHeight;
     }
 
     function showChatbotConsent(callback) {
