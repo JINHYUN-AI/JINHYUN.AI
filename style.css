@@ -988,3 +988,6 @@
 .as-escalate-btn.as-blink { font-weight: 800; animation: as-escalate-blink 1s ease-in-out 3; } /* 딱 3번만 깜빡임 */
 .as-escalate-btn.as-blink:disabled { animation: none; opacity: .6; }
 @media (prefers-reduced-motion: reduce) { .as-escalate-btn.as-blink { animation: none; background: var(--fg); color: var(--bg); border-color: var(--fg); } }
+
+/* 일반 챗봇 개인정보 입력 주의 안내(2026-11-24 20-X6) */
+.chat-privacy-note { font-size: 11px; line-height: 1.4; color: #868e96; padding: 4px 14px 8px; text-align: center; }

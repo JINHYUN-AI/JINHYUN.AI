@@ -25,13 +25,14 @@
   /* ---------- 6번 프로파일 양식 그대로 그리기 ---------- */
   function buildDoc(res) {
     var d = res.data || {}, p = d.profile || {};
-    var find = function (k) { var v = p[k]; return (v === undefined || v === null || v === '') ? '-' : v; };
+    var findRaw = function (k) { var v = p[k]; return (v === undefined || v === null || v === '') ? '-' : v; };
+    var find = function (k) { return escText(findRaw(k)); }; // 원본 시트 값은 HTML로 해석하지 않고 글자로만 넣는다(2026-11-24 20-X8)
     var theme = /^[a-z]+$/.test(String(p.app_theme || '')) ? p.app_theme : 'executive';
     var now = new Date();
     var issued = find('issued_date');
     if (issued === '-') issued = now.getFullYear() + '. ' + pad(now.getMonth() + 1) + '. ' + pad(now.getDate());
 
-    var photo = imgUrl(find('photo'));
+    var photo = imgUrl(findRaw('photo'));
     var photoHtml = (photo && photo !== '-')
       ? '<img src="' + escAttr(photo) + '" alt="Profile" onerror="this.style.display=\'none\'">' : USER_SVG;
 
@@ -51,29 +52,29 @@
       list.forEach(function (item, idx) {
         var cls = [idx === 0 ? 'group-start' : '', shaded ? 'group-shade' : ''].filter(Boolean).join(' ');
         timeline += '<tr class="' + cls + '"><td class="cat-col">' + catMeta[cat] + '</td>' +
-          '<td class="date-col">' + (item['Period (C열)'] || '-') + '</td>' +
-          '<td><div style="font-weight:600; color:var(--text-main);">' + (item.Content || '-') + '</div></td>' +
-          '<td class="org-col">' + (item.Organization || '-') + '</td></tr>';
+          '<td class="date-col">' + escText(item['Period (C열)'] || '-') + '</td>' +
+          '<td><div style="font-weight:600; color:var(--text-main);">' + escText(item.Content || '-') + '</div></td>' +
+          '<td class="org-col">' + escText(item.Organization || '-') + '</td></tr>';
       });
     });
     if (!timeline) timeline = '<tr><td colspan="4">No Data Available</td></tr>';
 
     var copies = (d.copyrights || []).map(function (i) {
-      return '<div class="copyright-item"><div class="copy-id">' + (i.ID || 'AG') + '</div>' +
-        '<div class="copy-info"><div class="name">' + (i['에이전트 명칭 (Program Name)'] || '-') + '</div><div class="role">' + (i['핵심 역할 (Core Role)'] || '-') + '</div></div>' +
-        '<div class="copy-desc">' + (i['주요 기능 및 차별점 (Key Features)'] || '-') + '</div></div>';
+      return '<div class="copyright-item"><div class="copy-id">' + escText(i.ID || 'AG') + '</div>' +
+        '<div class="copy-info"><div class="name">' + escText(i['에이전트 명칭 (Program Name)'] || '-') + '</div><div class="role">' + escText(i['핵심 역할 (Core Role)'] || '-') + '</div></div>' +
+        '<div class="copy-desc">' + escText(i['주요 기능 및 차별점 (Key Features)'] || '-') + '</div></div>';
     }).join('');
 
     var skills = (d.skills || []).map(function (i) {
-      return '<tr><td style="text-align:center; font-weight:700;">' + (i.Category || '-') + '</td><td><span class="skill-tag">' + (i.Skill_Name || '-') + '</span></td>' +
-        '<td style="text-align:center; font-weight:800; color:var(--accent);">' + (i.Level || '-') + '</td><td>' + (i.Related_Career || '-') + '</td></tr>';
+      return '<tr><td style="text-align:center; font-weight:700;">' + escText(i.Category || '-') + '</td><td><span class="skill-tag">' + escText(i.Skill_Name || '-') + '</span></td>' +
+        '<td style="text-align:center; font-weight:800; color:var(--accent);">' + escText(i.Level || '-') + '</td><td>' + escText(i.Related_Career || '-') + '</td></tr>';
     }).join('');
 
     var headerDate =
       '<span style="color:var(--primary); font-weight:700;">Prepared for: ' + escText(res.org) + '</span><br>' +
       'Ref No: AG-PRO-' + now.getFullYear() + '-X<br>Issued: ' + issued;
 
-    var title = '프로파일_' + String(find('name_kr')).replace(/[\\\/:*?"<>|]/g, '') + '_' + String(res.org || '').replace(/[\\\/:*?"<>|]/g, '');
+    var title = '프로파일_' + String(findRaw('name_kr')).replace(/[\\\/:*?"<>|]/g, '') + '_' + String(res.org || '').replace(/[\\\/:*?"<>|]/g, '');
 
     return '<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">' +
       '<title>' + escText(title) + '</title><link href="' + PF_FONT_LINK + '" rel="stylesheet">' +
